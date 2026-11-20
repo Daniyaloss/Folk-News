@@ -4,6 +4,13 @@ const $ = id => document.getElementById(id);
 const TINT = ['#dde3ee', '#e8e0d8', '#d9e6df', '#e8dce4', '#dce6ea'];
 const ph = i => `<span class="ph" style="--t:${TINT[i % 5]}"></span>`;
 const t = s => s.toLowerCase().replace(/"/g, '');
+const trCat = value => FolkI18n.t('cat.' + value, {}, value || '');
+const timeText = value => String(value || '')
+  .replace(/(\d+) min ago/g, (_, n) => FolkI18n.t('minAgo', { n }))
+  .replace(/(\d+) hours? ago/g, (_, n) => FolkI18n.t('hoursAgo', { n }))
+  .replace('Just now', FolkI18n.t('justNow'))
+  .replace('Yesterday', FolkI18n.t('yesterday'));
+const readsText = value => String(value || '').replace('reads', FolkI18n.t('readsWord'));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const cssUrl = u => `url('${encodeURI(String(u || '')).replace(/'/g, '%27')}')`;
 const picture = (url, i) => url
@@ -11,20 +18,20 @@ const picture = (url, i) => url
   : ph(i);
 const label = x => {
   const raw = x.published || x.pubDate;
-  if (!raw) return x.timeLabel || '';
+  if (!raw) return timeText(x.timeLabel);
   const date = new Date(raw);
-  if (isNaN(date)) return x.timeLabel || '';
+  if (isNaN(date)) return timeText(x.timeLabel);
   const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return FolkI18n.t('justNow');
+  if (minutes < 60) return FolkI18n.t('minAgo', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (hours < 24) return FolkI18n.t(hours > 1 ? 'hoursAgo' : 'hourAgo', { n: hours });
   const days = Math.floor(hours / 24);
-  if (days === 1) return 'Yesterday';
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (days === 1) return FolkI18n.t('yesterday');
+  return date.toLocaleDateString(FolkI18n.locale(), { day: '2-digit', month: 'short', year: 'numeric' });
 };
-const cardHtml = (x, i) => `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<span class="cat">${esc(x.source || x.category || 'News')}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></a>`;
-const rowHtml = (x, i) => `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(x.category || x.source || 'News')}</span><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source || '')} · ${esc(label(x))}</small></div></a>`;
+const cardHtml = (x, i) => `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></a>`;
+const rowHtml = (x, i) => `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(trCat(x.category || x.source || 'News'))}</span><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source || '')} · ${esc(label(x))}</small></div></a>`;
 
 const CATS = ['Home', 'News', 'Local', 'World', 'Law', 'Politics', 'Economy', 'Health', 'Sports', 'Tech', 'Entertainment', 'Opinion', 'Infographics', 'Photo', 'Index'];
 const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World', Law: 'Law', Politics: 'Politics', Economy: 'Economy', Health: 'Health', Sports: 'Sports', Tech: 'Technology', Entertainment: 'Entertainment', Opinion: 'Opinion', Infographics: 'Infographics', Photo: 'Photo', Index: null };
@@ -45,35 +52,35 @@ const POLITICS = [
   ['Parliament Committee Reviews Proposed Transport Bill', 'Members heard from drivers, operators, and city planners about changes to licensing and fares.', 'By Dimas Prakoso, 8 hours ago']];
 const POPULAR = [['Rice Prices Drop as Markets Fill Up Again', '12K reads'], ['National Team Wins 2-0, Advances to the Final', '10K reads'], ['Walking 30 Minutes a Day: What It Does for Your Body', '8K reads'], ['Bogor Plans a New 12 km Bicycle Lane', '7K reads'], ['New Data Protection Rules Begin Public Briefings', '5K reads']];
 const TOPICS = ['Politics', 'Sports', 'Technology', 'Health', 'Economy', 'Entertainment'];
-const FOOT = { News: ['Latest', 'Politics', 'Sports', 'Technology'], Explore: ['Photo', 'Opinion', 'Infographics'], Folk: ['About us', 'Editorial team', 'Careers', 'Advertise'], Account: ['Saved', 'Settings', 'Help'] };
+const FOOT = { footNews: ['Latest', 'Politics', 'Sports', 'Technology'], footExplore: ['Photo', 'Opinion', 'Infographics'], footFolk: ['About us', 'Editorial team', 'Careers', 'Advertise'], footAccount: ['Saved', 'Settings', 'Help'] };
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
 
 // ---- render ----
-$('cats').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${c}</a>`).join('');
-$('subs').innerHTML = SUBS.map(s => `<a href="#">${s}${s === 'Regions' ? CHEV : ''}</a>`).join('') + `<a class="edition" href="#">Edition: Indonesia${CHEV}</a>`;
-$('today').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+$('cats').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('');
+$('subs').innerHTML = SUBS.map(s => `<a href="#">${FolkI18n.t('sub.' + s)}${s === 'Regions' ? CHEV : ''}</a>`).join('') + `<a class="edition" href="#">${FolkI18n.t('edition')}${CHEV}</a>`;
+$('today').textContent = new Date().toLocaleDateString(FolkI18n.locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 $('hero').dataset.title = t(HERO[1]);
 $('hero').href = HERO_LINK;
 $('hero').classList.add('photo');
 $('hero').style.backgroundImage = 'url("Assets/berita_kpk.jpeg"), linear-gradient(135deg,#545f78,#1f2433)';
-$('hero').innerHTML = `<span class="pill">${HERO[0]}</span><h2>${HERO[1]}</h2><p class="hero-excerpt">${HERO_EXCERPT}</p><small>${HERO[2]}</small>`;
-$('side').innerHTML = SIDE.map((s, i) => `<a class="mini" href="#" data-title="${t(s[1])}">${ph(i)}<div><span class="cat">${s[0]}</span><h3>${s[1]}</h3><small>${s[2]}</small></div></a>`).join('');
-$('fresh').innerHTML = FRESH.map((s, i) => `<a class="card" href="#" data-title="${t(s[1])}">${ph(i)}<span class="cat">${s[0]}</span><h3>${s[1]}</h3><small>${s[2]}</small></a>`).join('');
-$('politics').innerHTML = POLITICS.map((s, i) => `<a class="row" href="#" data-title="${t(s[0])}">${ph(i + 1)}<div><span class="cat">Politics</span><h3>${s[0]}</h3><p>${s[1]}</p><small>${s[2]}</small></div></a>`).join('');
-$('pager').innerHTML = ['1', '2', '3', '…', '88'].map((p, i) => `<button type="button"${i ? '' : ' aria-current="page"'}${p === '…' ? ' disabled' : ''}>${p}</button>`).join('') + '<button class="next" type="button">Next</button>';
-$('popular').innerHTML = POPULAR.map((s, i) => `<a class="pop-item" href="#" data-title="${t(s[0])}"><b>${i + 1}</b><div><h3>${s[0]}</h3><small>${s[1]}</small></div></a>`).join('');
-$('topics').innerHTML = TOPICS.map(s => `<a href="${TOPIC_PAGE[s]}">${s}</a>`).join('');
-$('fcols').innerHTML = Object.entries(FOOT).map(([h, l]) => `<div><h4>${h}</h4>${l.map(x => `<a href="${FOOT_PAGE[x] || '#'}">${x}</a>`).join('')}</div>`).join('');
+$('hero').innerHTML = `<span class="pill">${trCat(HERO[0])}</span><h2>${HERO[1]}</h2><p class="hero-excerpt">${HERO_EXCERPT}</p><small>${timeText(HERO[2])}</small>`;
+$('side').innerHTML = SIDE.map((s, i) => `<a class="mini" href="#" data-title="${t(s[1])}">${ph(i)}<div><span class="cat">${trCat(s[0])}</span><h3>${s[1]}</h3><small>${timeText(s[2])}</small></div></a>`).join('');
+$('fresh').innerHTML = FRESH.map((s, i) => `<a class="card" href="#" data-title="${t(s[1])}">${ph(i)}<span class="cat">${trCat(s[0])}</span><h3>${s[1]}</h3><small>${timeText(s[2])}</small></a>`).join('');
+$('politics').innerHTML = POLITICS.map((s, i) => `<a class="row" href="#" data-title="${t(s[0])}">${ph(i + 1)}<div><span class="cat">${trCat('Politics')}</span><h3>${s[0]}</h3><p>${s[1]}</p><small>${timeText(s[2])}</small></div></a>`).join('');
+$('pager').innerHTML = ['1', '2', '3', '…', '88'].map((p, i) => `<button type="button"${i ? '' : ' aria-current="page"'}${p === '…' ? ' disabled' : ''}>${p}</button>`).join('') + `<button class="next" type="button">${FolkI18n.t('next')}</button>`;
+$('popular').innerHTML = POPULAR.map((s, i) => `<a class="pop-item" href="#" data-title="${t(s[0])}"><b>${i + 1}</b><div><h3>${s[0]}</h3><small>${readsText(s[1])}</small></div></a>`).join('');
+$('topics').innerHTML = TOPICS.map(s => `<a href="${TOPIC_PAGE[s]}">${trCat(s)}</a>`).join('');
+$('fcols').innerHTML = Object.entries(FOOT).map(([h, l]) => `<div><h4>${FolkI18n.t(h)}</h4>${l.map(x => `<a href="${FOOT_PAGE[x] || '#'}">${FolkI18n.t('link.' + x, {}, x)}</a>`).join('')}</div>`).join('');
 
 // ---- who is logged in ----
 const me = Folk.session();
-$('uname').textContent = me ? me.name : 'Guest';
+$('uname').textContent = me ? me.name : FolkI18n.t('guest');
 $('av').textContent = (me ? me.name : 'G').trim().charAt(0).toUpperCase();
-$('pop').innerHTML = me ? '<button type="button" id="logout">Log out</button>' : '<a href="login.html">Log In</a>';
+$('pop').innerHTML = me ? `<button type="button" id="logout">${FolkI18n.t('logout')}</button>` : `<a href="login.html">${FolkI18n.t('login')}</a>`;
 if (me) $('logout').onclick = Folk.logout;
 
 // ---- menu drawer ----
-$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${c}</a>`).join('') + '<div class="sp"></div><a href="#">Settings</a><a href="#">Help</a>' + (me ? '<button type="button" id="dlogout">Log out</button>' : '<a href="login.html">Log In</a>');
+$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('') + `<div class="sp"></div><a href="#">${FolkI18n.t('settings')}</a><a href="#">${FolkI18n.t('help')}</a>` + (me ? `<button type="button" id="dlogout">${FolkI18n.t('logout')}</button>` : `<a href="login.html">${FolkI18n.t('login')}</a>`);
 if (me) $('dlogout').onclick = Folk.logout;
 $('open-menu').onclick = () => $('drawer').showModal();
 $('close-menu').onclick = () => $('drawer').close();
@@ -87,7 +94,7 @@ $('pager').onclick = e => {
   b.setAttribute('aria-current', 'page');
 };
 document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
-$('subscribe').onclick = e => { e.target.textContent = 'Subscribed'; e.target.disabled = true; };
+$('subscribe').onclick = e => { e.target.textContent = FolkI18n.t('subscribed'); e.target.disabled = true; };
 $('search').onsubmit = e => e.preventDefault();
 $('q').oninput = applySearch;
 if ($('more-news')) $('more-news').onclick = renderMore;
@@ -134,16 +141,17 @@ function renderNews() {
   const empty = $('category-empty');
   const fallback = !pool.length && !!wanted;
   if (fallback) pool = LIVE.items;
+  const name = trCat(CURRENT);
   empty.hidden = !fallback;
-  empty.textContent = fallback ? `Belum ada berita khusus ${CURRENT}; menampilkan berita terbaru.` : '';
+  empty.textContent = fallback ? FolkI18n.t('emptyCategory', { name }) : '';
 
   document.querySelector('.ticker').hidden = CURRENT !== 'Home';
   $('popular-section').hidden = CURRENT !== 'Home';
   $('pager').hidden = CURRENT !== 'Home';
-  $('fresh-title').textContent = CURRENT === 'Home' ? 'Fresh Update' : CURRENT === 'Index' ? 'Semua Berita' : `${CURRENT} · Terbaru`;
-  $('politics-title').textContent = CURRENT === 'Home' ? 'Politics' : `${CURRENT} · Pilihan`;
-  $('auto-title').textContent = CURRENT === 'Home' ? 'Berita Otomatis' : `${CURRENT} · Lainnya`;
-  $('archive-title').textContent = CURRENT === 'Home' || CURRENT === 'Index' ? 'Arsip Berita' : `${CURRENT} · Arsip`;
+  $('fresh-title').textContent = CURRENT === 'Home' ? FolkI18n.t('freshUpdate') : CURRENT === 'Index' ? FolkI18n.t('allNews') : FolkI18n.t('latestLabel', { name });
+  $('politics-title').textContent = CURRENT === 'Home' ? trCat('Politics') : FolkI18n.t('picksLabel', { name });
+  $('auto-title').textContent = CURRENT === 'Home' ? FolkI18n.t('automaticNews') : FolkI18n.t('moreLabel', { name });
+  $('archive-title').textContent = CURRENT === 'Home' || CURRENT === 'Index' ? FolkI18n.t('newsArchive') : FolkI18n.t('archiveLabel', { name });
 
   const lead = pool.find(x => x.image) || pool[0];
   const rest = pool.filter(x => x.id !== lead.id);
@@ -167,11 +175,11 @@ function renderNews() {
   $('hero').style.backgroundImage = lead.image
     ? `${cssUrl(lead.image)}, linear-gradient(135deg,#545f78,#1f2433)`
     : 'linear-gradient(135deg,#545f78,#1f2433)';
-  $('hero').innerHTML = `<span class="pill">${esc(lead.source || lead.category || 'News')}</span><h2>${esc(lead.title)}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>`;
+  $('hero').innerHTML = `<span class="pill">${esc(lead.source || trCat(lead.category || 'News'))}</span><h2>${esc(lead.title)}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>`;
 
   const side = next(rest, 4);
   $('side').innerHTML = side.map((x, i) =>
-    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source || x.category || 'News')}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></div></a>`
+    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></div></a>`
   ).join('');
 
   const fresh = next(rest, 20);
@@ -194,7 +202,7 @@ function renderNews() {
 
   if (LIVE.updatedAt && $('auto-updated')) {
     const stamp = new Date(LIVE.updatedAt);
-    if (!isNaN(stamp)) $('auto-updated').textContent = 'Diperbarui ' + stamp.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    if (!isNaN(stamp)) $('auto-updated').textContent = FolkI18n.t('updated') + stamp.toLocaleString(FolkI18n.locale(), { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
   applySearch();
 }
@@ -209,7 +217,7 @@ function renderMore() {
   ARCHIVE_AT += batch.length;
   $('archive').insertAdjacentHTML('beforeend', batch.map(cardHtml).join(''));
   $('more-news').hidden = ARCHIVE_AT >= ARCHIVE.length;
-  $('archive-count').textContent = `${ARCHIVE_AT}/${ARCHIVE.length} berita`;
+  $('archive-count').textContent = FolkI18n.t('archiveCount', { a: ARCHIVE_AT, b: ARCHIVE.length });
   applySearch();
 }
 
@@ -242,7 +250,7 @@ if ($('news-refresh')) {
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(() => loadNews())
       .then(() => { button.textContent = 'OK'; })
-      .catch(() => { button.textContent = 'Butuh server.py'; })
+      .catch(() => { button.textContent = FolkI18n.t('needServer'); })
       .finally(() => setTimeout(() => { button.textContent = label; button.disabled = false; }, 1800));
   };
 }

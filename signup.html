@@ -1,18 +1,20 @@
 <!doctype html>
 <html lang="en"><head><title>Sign Up · Folk</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"></head>
 <body class="auth" data-page="signup">
+<button class="lang-toggle" id="lang-toggle" type="button">ID</button>
 <main>
-  <header><h1>Welcome To Folk</h1><p class="tagline">Folk Is A Platform Where News Update Everyday</p></header>
+  <header><h1 data-i18n="welcomeTitle">Welcome To Folk</h1><p class="tagline" data-i18n="brandTagline">Folk Is A Platform Where News Update Everyday</p></header>
   <form class="form" id="signup-form" novalidate>
-    <div class="field"><label for="name">Name</label><input class="input" id="name" type="text" placeholder="Type your name" autocomplete="name" required></div>
-    <div class="field"><label for="email">Email</label><input class="input" id="email" type="email" placeholder="Type your email" autocomplete="email" required></div>
-    <div class="field"><label for="password">Password</label><div class="pw"><input class="input" id="password" type="password" placeholder="Type your password" autocomplete="new-password" required><button class="eye" type="button" aria-label="Show password" aria-pressed="false"></button></div></div>
-    <button class="btn dark" type="submit">Sign Up</button>
+    <div class="field"><label for="name" data-i18n="name">Name</label><input class="input" id="name" type="text" placeholder="Type your name" data-i18n-placeholder="typeName" autocomplete="name" required></div>
+    <div class="field"><label for="email" data-i18n="email">Email</label><input class="input" id="email" type="email" placeholder="Type your email" data-i18n-placeholder="typeEmail" autocomplete="email" required></div>
+    <div class="field"><label for="password" data-i18n="signupPassword">Password</label><div class="pw"><input class="input" id="password" type="password" placeholder="Type your password" data-i18n-placeholder="typePassword" autocomplete="new-password" required><button class="eye" type="button" aria-label="Show password" aria-pressed="false"></button></div></div>
+    <button class="btn dark" type="submit" data-i18n="signup">Sign Up</button>
     <p class="msg" id="msg" role="alert"></p>
-    <p class="small">Already have an account? <a href="login.html">Sign In here</a></p>
+    <p class="small"><span data-i18n="alreadyAccount">Already have an account? </span><a href="login.html" data-i18n="signInHere">Sign In here</a></p>
   </form>
-  <a class="home-link" href="home.html">Home</a>
+  <a class="home-link" href="home.html" data-i18n="home">Home</a>
 </main>
-<footer class="terms">By clicking “Sign Up”<br>You Agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy policy</a>.</footer>
+<footer class="terms" data-i18n-html="termsSignup">By clicking “Sign Up”<br>You Agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy policy</a>.</footer>
+<script src="js/i18n.js"></script>
 <script src="js/auth.js"></script>
 </body></html>

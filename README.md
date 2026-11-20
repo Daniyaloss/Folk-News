@@ -44,6 +44,7 @@ Double-clicking `index.html` still opens the prototype, but browser rules block 
 - "Most Popular" is still a placeholder section because RSS feeds do not contain reading counts; video items and the video section are not shown.
 - Clicking a category in the top nav or menu opens its own page (`sports.html`, `politics.html`, ...); "Home" and "Index" (`all.html`) show everything. `?cat=Sports` still works. If a category has no stories yet, the newest stories are shown with a notice instead of a blank page.
 - After editing the shared layout or category list, run `python build_pages.py` to refresh the generated category pages.
+- The **ID / EN** button switches the interface between Indonesian and English and saves the choice in this browser; article text from RSS stays in its original language.
 - Every 07:00 refresh adds new stories to the saved history; yesterday's stories are kept as-is. Home renders hero + side + Fresh Update + Politics + Berita Otomatis + Arsip Berita, with a "Muat lebih banyak" button for the archive.
 - Stories older than 60 days (and their downloaded thumbnails) are removed automatically. Local thumbnails are capped at 160; older/extra stories keep their original image URL. The cache holds at most 6000 stories.
 - Sizes are in rem. Above 1920px wide the whole page scales up (TV / 4K).

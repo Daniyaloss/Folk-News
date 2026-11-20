@@ -1,34 +1,36 @@
 <!doctype html>
 <html lang="en"><head><title>Log In · Folk</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"></head>
 <body class="auth" data-page="login">
+<button class="lang-toggle" id="lang-toggle" type="button">ID</button>
 <main>
-  <header><h1>Welcome To Folk</h1><p class="tagline">Folk Is A Platform Where News Update Everyday</p></header>
+  <header><h1 data-i18n="welcomeTitle">Welcome To Folk</h1><p class="tagline" data-i18n="brandTagline">Folk Is A Platform Where News Update Everyday</p></header>
   <div class="form" id="step-email">
     <button class="btn google" id="google" type="button">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
+      <span data-i18n="google">Continue with Google</span>
     </button>
     <hr class="rule">
     <form class="form" id="email-form" novalidate>
-      <div class="field"><label for="email">Email</label><input class="input" id="email" type="email" placeholder="Type your email" autocomplete="email" required></div>
-      <button class="btn dark" type="submit">Continue with Email</button>
+      <div class="field"><label for="email" data-i18n="email">Email</label><input class="input" id="email" type="email" placeholder="Type your email" data-i18n-placeholder="typeEmail" autocomplete="email" required></div>
+      <button class="btn dark" type="submit" data-i18n="continueEmail">Continue with Email</button>
       <p class="msg" id="msg1" role="alert"></p>
     </form>
-    <p class="small">Doesn’t have an account? <a href="signup.html">Sign Up here</a></p>
+    <p class="small"><span data-i18n="noAccount">Doesn’t have an account? </span><a href="signup.html" data-i18n="signUpHere">Sign Up here</a></p>
   </div>
 
   <form class="form" id="pw-form" novalidate hidden>
-    <div class="row2"><button class="linkbtn gray" id="back" type="button">← Back</button><span class="who" id="who"></span></div>
+    <div class="row2"><button class="linkbtn gray" id="back" type="button" data-i18n="back">← Back</button><span class="who" id="who"></span></div>
     <div class="field">
-      <label for="password">Account Password</label>
-      <div class="pw"><input class="input" id="password" type="password" placeholder="Type your password" autocomplete="current-password" required><button class="eye" type="button" aria-label="Show password" aria-pressed="false"></button></div>
+      <label for="password" data-i18n="password">Account Password</label>
+      <div class="pw"><input class="input" id="password" type="password" placeholder="Type your password" data-i18n-placeholder="typePassword" autocomplete="current-password" required><button class="eye" type="button" aria-label="Show password" aria-pressed="false"></button></div>
     </div>
-    <button class="btn dark" type="submit">Log In</button>
-    <div class="row2"><p class="msg" id="msg2" role="alert"></p><button class="linkbtn" id="forgot" type="button">Forgot Password?</button></div>
+    <button class="btn dark" type="submit" data-i18n="login">Log In</button>
+    <div class="row2"><p class="msg" id="msg2" role="alert"></p><button class="linkbtn" id="forgot" type="button" data-i18n="forgot">Forgot Password?</button></div>
   </form>
 
-  <a class="home-link" href="home.html">Home</a>
+  <a class="home-link" href="home.html" data-i18n="home">Home</a>
 </main>
-<footer class="terms">By clicking “sign in with google” or “Continue with email”<br>You Agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy policy</a>.</footer>
+<footer class="terms" data-i18n-html="termsLogin">By clicking “sign in with google” or “Continue with email”<br>You Agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy policy</a>.</footer>
+<script src="js/i18n.js"></script>
 <script src="js/auth.js"></script>
 </body></html>

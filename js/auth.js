@@ -28,20 +28,20 @@ const Folk = (() => {
       const input = b.previousElementSibling, show = input.type === 'password';
       input.type = show ? 'text' : 'password';
       b.setAttribute('aria-pressed', show);
-      b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      b.setAttribute('aria-label', FolkI18n.t(show ? 'hidePassword' : 'showPassword'));
       b.innerHTML = show ? EYE_OFF : EYE;
     };
   });
 
   if (page === 'login') {
     let who = null;
-    $('google').onclick = () => Folk.start({ name: 'Google User', email: '' }); // shortcut: fake Google sign-in
+    $('google').onclick = () => Folk.start({ name: FolkI18n.t('googleUser'), email: '' }); // shortcut: fake Google sign-in
     $('email-form').onsubmit = e => {
       e.preventDefault();
       const email = $('email').value.trim().toLowerCase();
-      if (!emailOk(email)) return say('msg1', 'Enter a valid email address.');
+      if (!emailOk(email)) return say('msg1', FolkI18n.t('validEmail'));
       who = Folk.users().find(u => u.email === email);
-      if (!who) return say('msg1', 'No account found for this email. <a href="signup.html">Sign Up here</a>');
+      if (!who) return say('msg1', FolkI18n.t('noAccountFound'));
       say('msg1', '');
       $('who').textContent = email;
       $('step-email').hidden = true;
@@ -55,10 +55,10 @@ const Folk = (() => {
       say('msg2', '');
       $('email').focus();
     };
-    $('forgot').onclick = () => say('msg2', 'Password reset is coming soon.', true);
+    $('forgot').onclick = () => say('msg2', FolkI18n.t('resetSoon'), true);
     $('pw-form').onsubmit = e => {
       e.preventDefault();
-      if ($('password').value.length < 6) return say('msg2', 'Password must be at least 6 characters.');
+      if ($('password').value.length < 6) return say('msg2', FolkI18n.t('passwordMin'));
       Folk.start(who);
     };
   }
@@ -67,10 +67,10 @@ const Folk = (() => {
     $('signup-form').onsubmit = e => {
       e.preventDefault();
       const name = $('name').value.trim(), email = $('email').value.trim().toLowerCase();
-      if (!name) return say('msg', 'Enter your name.');
-      if (!emailOk(email)) return say('msg', 'Enter a valid email address.');
-      if ($('password').value.length < 6) return say('msg', 'Password must be at least 6 characters.');
-      if (Folk.users().some(u => u.email === email)) return say('msg', 'This email is already registered. <a href="login.html">Sign In here</a>');
+      if (!name) return say('msg', FolkI18n.t('enterName'));
+      if (!emailOk(email)) return say('msg', FolkI18n.t('validEmail'));
+      if ($('password').value.length < 6) return say('msg', FolkI18n.t('passwordMin'));
+      if (Folk.users().some(u => u.email === email)) return say('msg', FolkI18n.t('emailRegistered'));
       Folk.addUser({ name, email });
       Folk.start({ name, email });
     };
