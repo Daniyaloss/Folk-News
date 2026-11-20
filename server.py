@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
@@ -23,6 +23,9 @@ MAX_ITEMS = 6000
 MAX_IMAGES = 160
 HISTORY_DAYS = 60
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) FolkNews/1.0"
+TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
+TRANSLATE_TIMEOUT = 12
+TRANSLATE_BATCH = 900
 
 FEEDS = [
     ("Detik", "https://news.detik.com/berita/rss"),
@@ -215,6 +218,55 @@ def save_image(url):
         return url
 
 
+def translate_titles(items):
+    wanted, seen = [], set()
+    for item in items:
+        title = item.get("title", "")
+        if not title or item.get("title_en") or title in seen:
+            continue
+        seen.add(title)
+        wanted.append(title)
+    if not wanted:
+        return 0
+
+    batches, batch, size = [], [], 0
+    for title in wanted:
+        length = len(title.encode("utf-8")) + 1
+        if batch and size + length > TRANSLATE_BATCH:
+            batches.append(batch)
+            batch, size = [], 0
+        batch.append(title)
+        size += length
+    if batch:
+        batches.append(batch)
+
+    found = {}
+    for batch in batches:
+        try:
+            url = TRANSLATE_URL + "?" + urlencode({
+                "client": "gtx", "sl": "id", "tl": "en", "dt": "t", "q": "\n".join(batch),
+            })
+            request = Request(url, headers={"User-Agent": UA})
+            with open_url(request, TRANSLATE_TIMEOUT) as response:
+                data = json.load(response)
+            lines = "".join(segment[0] for segment in data[0] if segment[0]).splitlines()
+            if len(lines) != len(batch):
+                continue
+            for original, translated in zip(batch, lines):
+                translated = translated.strip()
+                if translated:
+                    found[original] = translated
+            time.sleep(0.15)
+        except Exception as error:
+            print("title translation failed:", error)
+
+    for item in items:
+        title = item.get("title", "")
+        if title in found and not item.get("title_en"):
+            item["title_en"] = found[title]
+    return len(found)
+
+
 def read_cache():
     try:
         return json.loads(CACHE.read_text(encoding="utf-8"))
@@ -263,6 +315,7 @@ def refresh():
         items = fresh + old_items
         items.sort(key=lambda x: x["published"], reverse=True)
         items = items[:MAX_ITEMS]
+        translated = translate_titles(items)
 
         keep = {Path(item["image"]).name for item in items if is_local_image(item)}
         for old in IMGDIR.glob("*.*"):
@@ -282,7 +335,7 @@ def refresh():
         temporary = CACHE.with_name("news.json.tmp")
         temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         temporary.replace(CACHE)
-        print(f"[{now:%H:%M:%S}] added {len(fresh)} items, kept {len(old_items)}, total {len(items)}; errors: {errors}")
+        print(f"[{now:%H:%M:%S}] added {len(fresh)} items, kept {len(old_items)}, total {len(items)}, translated {translated} titles; errors: {errors}")
         return payload
 
 

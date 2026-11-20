@@ -125,6 +125,24 @@
     'sub.Explainers': 'Explainers',
     'sub.Newsletter': 'Newsletter',
     'sub.Special Report': 'Special Report',
+    'demo.hero': 'The KPK Is Ready to Comply with the Asset Forfeiture Law Passed by Parliament',
+    'demo.heroExcerpt': 'Read the detiknews article, "The KPK Is Ready to Comply with the Asset Forfeiture Law Passed by Parliament" in full at https://news.detik.com/berita/d-8761217/kpk-siap-patuhi-undang-undang-perampasan-aset-yang-disahkan-dpr.<br>Download the Detikcom app now at https://apps.detik.com/detik/',
+    'demo.side1': 'Rice Prices Drop as Markets Fill Up Again',
+    'demo.side2': 'National Team Wins 2-0, Advances to the Final',
+    'demo.side3': 'Bogor Plans a New 12 km Bicycle Lane',
+    'demo.fresh1': 'Local App Helps Farmers Sell Harvest Directly',
+    'demo.fresh2': 'Walking 30 Minutes a Day: What It Does for Your Body',
+    'demo.fresh3': 'New Data Protection Rules Begin Public Briefings',
+    'demo.fresh4': 'Short Film Festival Returns to City Park This Weekend',
+    'demo.fresh5': 'Regional Budget Meeting Opens, Residents Invited to Comment',
+    'demo.politics1': 'Council Debates Longer Opening Hours for Public Libraries',
+    'demo.politics2': 'Village Heads Meet to Discuss Clean Water Funding',
+    'demo.politics3': 'Election Office Opens Voter Information Desk Online',
+    'demo.politics4': 'Parliament Committee Reviews Proposed Transport Bill',
+    'demo.politicsExcerpt1': 'Supporters say evening access helps students and workers, while others ask who will cover the cost.',
+    'demo.politicsExcerpt2': 'Leaders from eleven villages compare plans for new wells, pipes, and shared maintenance crews.',
+    'demo.politicsExcerpt3': 'Residents can now check registration details and polling place locations from their phones.',
+    'demo.politicsExcerpt4': 'Members heard from drivers, operators, and city planners about changes to licensing and fares.',
   };
   const ID = {
     pageTitleHome: 'Folk · Berita',
@@ -251,10 +269,34 @@
     'sub.Explainers': 'Penjelasan',
     'sub.Newsletter': 'Buletin',
     'sub.Special Report': 'Laporan Khusus',
+    'demo.hero': 'KPK Siap Patuhi Undang-Undang Perampasan Aset yang Disahkan DPR',
+    'demo.heroExcerpt': 'Baca artikel detiknews, "KPK Siap Patuhi Undang-Undang Perampasan Aset yang Disahkan DPR" selengkapnya https://news.detik.com/berita/d-8761217/kpk-siap-patuhi-undang-undang-perampasan-aset-yang-disahkan-dpr.<br>Download Apps Detikcom Sekarang https://apps.detik.com/detik/',
+    'demo.side1': 'Harga Beras Turun Lagi Saat Pasar Mulai Terisi',
+    'demo.side2': 'Tim Nasional Menang 2-0, Melaju ke Final',
+    'demo.side3': 'Bogor Rencanakan Jalur Sepeda Baru 12 km',
+    'demo.fresh1': 'Aplikasi Lokal Bantu Petani Jual Hasil Panen Langsung',
+    'demo.fresh2': 'Jalan 30 Menit Sehari: Apa Manfaatnya bagi Tubuh',
+    'demo.fresh3': 'Aturan Baru Perlindungan Data Mulai Sosialisasi Publik',
+    'demo.fresh4': 'Festival Film Pendek Kembali ke Taman Kota Akhir Pekan Ini',
+    'demo.fresh5': 'Rapat Anggaran Daerah Dimulai, Warga Diminta Memberi Masukan',
+    'demo.politics1': 'Dewan Bahas Jam Buka Perpustakaan Umum Lebih Panjang',
+    'demo.politics2': 'Kepala Desa Bahas Pendanaan Air Bersih',
+    'demo.politics3': 'KPU Buka Layanan Informasi Pemilih Secara Daring',
+    'demo.politics4': 'Komisi DPR Kaji Rancangan Undang-Undang Transportasi',
+    'demo.politicsExcerpt1': 'Pendukung mengatakan akses malam membantu pelajar dan pekerja, sementara yang lain bertanya siapa yang menanggung biayanya.',
+    'demo.politicsExcerpt2': 'Pemimpin dari sebelas desa membandingkan rencana sumur baru, pipa, dan tim perawatan bersama.',
+    'demo.politicsExcerpt3': 'Warga kini bisa mengecek data pendaftaran dan lokasi tempat pemungutan suara dari ponsel mereka.',
+    'demo.politicsExcerpt4': 'Anggota mendengarkan masukan pengemudi, operator, dan perencana kota soal perubahan izin dan tarif.',
   };
   const DICT = { en: EN, id: ID };
-  let lang = 'en';
-  try { if (localStorage.getItem(KEY) === 'id') lang = 'id'; } catch {}
+  const AUTH_PAGES = new Set(['login', 'signup']);
+  const PAGE = document.body ? document.body.dataset.page : '';
+  let lang = 'id';
+  try {
+    const stored = localStorage.getItem(KEY);
+    if (stored === 'en' || stored === 'id') lang = stored;
+  } catch {}
+  if (AUTH_PAGES.has(PAGE)) lang = 'en';
 
   const t = (key, vars = {}, fallback = key) => {
     let value = DICT[lang][key] ?? EN[key] ?? fallback;
@@ -280,6 +322,7 @@
 
     const button = document.getElementById('lang-toggle');
     if (button) {
+      if (AUTH_PAGES.has(document.body.dataset.page)) button.hidden = true;
       button.textContent = lang === 'en' ? 'ID' : 'EN';
       button.setAttribute('aria-label', t('langToggleAria'));
       button.title = t('langToggleAria');
@@ -287,6 +330,7 @@
   };
 
   const toggle = () => {
+    if (AUTH_PAGES.has(document.body.dataset.page)) return;
     lang = lang === 'en' ? 'id' : 'en';
     try { localStorage.setItem(KEY, lang); } catch {}
     location.reload();
