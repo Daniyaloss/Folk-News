@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><title>Sign Up · Folk</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/styles.css"></head>
+<body class="auth" data-page="signup">
+<main>
+  <header><h1>Welcome To Folk</h1><p class="tagline">Folk Is A Platform Where News Update Everyday</p></header>
+  <form class="form" id="signup-form" novalidate>
+    <div class="field"><label for="name">Name</label><input class="input" id="name" type="text" placeholder="Type your name" autocomplete="name" required></div>
+    <div class="field"><label for="email">Email</label><input class="input" id="email" type="email" placeholder="Type your email" autocomplete="email" required></div>
+    <div class="field"><label for="password">Password</label><div class="pw"><input class="input" id="password" type="password" placeholder="Type your password" autocomplete="new-password" required><button class="eye" type="button" aria-label="Show password" aria-pressed="false"></button></div></div>
+    <button class="btn dark" type="submit">Sign Up</button>
+    <p class="msg" id="msg" role="alert"></p>
+    <p class="small">Already have an account? <a href="login.html">Sign In here</a></p>
+  </form>
+  <a class="home-link" href="home.html">Home</a>
+</main>
+<footer class="terms">By clicking “Sign Up”<br>You Agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy policy</a>.</footer>
+<script src="js/auth.js"></script>
+</body></html>
