@@ -39,5 +39,6 @@ Double-clicking `index.html` still opens the prototype, but browser rules block 
 
 ## Good to know
 - Accounts live in this browser (localStorage). Passwords are not stored, so any password of 6+ characters works for a registered email. "Continue with Google" is a stand-in.
-- "Most Popular" and "Video" are still placeholder sections because RSS feeds do not contain reading counts or videos.
+- "Most Popular" is still a placeholder section because RSS feeds do not contain reading counts; video items and the video section are not shown.
+- Clicking a category in the top nav or menu filters the live news to that category; "Home" and "Index" show everything.
 - Sizes are in rem. Above 1920px wide the whole page scales up (TV / 4K).

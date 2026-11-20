@@ -37,6 +37,10 @@ CATEGORY_RULES = [
     ("Economy", r"\b(rupiah|ihsg|harga|ekonomi|investasi|pajak|bank|umkm|bpjs|bursa)\b"),
     ("Sports", r"\b(persib|bola|liga|olahraga|pemain|badminton|moto|tenis|piala)\b"),
     ("Technology", r"\b(teknologi|digital|kecerdasan|siber|hacker|aplikasi|smartphone|microsoft|google|data)\b"),
+    ("Entertainment", r"\b(film|musik|konser|artis|selebriti|festival|teater|drama|netflix|spotify|game|seniman)\b"),
+    ("Opinion", r"\b(opini|komentar|analisis|editorial|pandangan|tulisan|suara)\b"),
+    ("Infographics", r"\b(infografis|grafik|statistik|peta|tabel)\b"),
+    ("Photo", r"\b(foto|galeri|potret|dokumentasi|visual|gambar)\b"),
     ("Health", r"\b(kesehatan|rumah sakit|dokter|penyakit|kanker|gizi|vaksin|stunting)\b"),
     ("Local", r"\b(jakarta|bogor|bandung|surabaya|banten|jawa|kota|warga)\b"),
 ]
@@ -91,6 +95,12 @@ def guess_category(title):
         if re.search(pattern, value):
             return category
     return "News"
+
+
+def is_video(item):
+    path = urlparse(item.get("url", "")).path.lower()
+    title = (item.get("title") or "").lower()
+    return path.startswith("/video/") or "/video/" in path or bool(re.search(r"\bvideo\b", title)) or item.get("category") == "Video"
 
 
 def parse_date(raw):
@@ -206,7 +216,7 @@ def refresh():
         seen = set()
         items = []
         for item in collected:
-            if not item["title"] or not item["url"] or item["id"] in seen:
+            if not item["title"] or not item["url"] or item["id"] in seen or is_video(item):
                 continue
             seen.add(item["id"])
             items.append(item)
