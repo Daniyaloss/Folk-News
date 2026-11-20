@@ -30,7 +30,7 @@ jobs:
       - name: Stage site
         run: |
           mkdir -p site
-          cp -r index.html home.html login.html signup.html css js Assets data site/
+          cp -r *.html css js Assets data site/
           touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

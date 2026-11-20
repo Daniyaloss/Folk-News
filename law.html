@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ffffff">
+<title>Folk · Law</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/home.css">
+</head>
+<body class="home" data-page="category" data-category="Law">
+<div class="bg" aria-hidden="true"><i class="dots l"></i><i class="dots r"></i><i class="rings l"></i><i class="rings r"></i></div>
+
+<div class="top" id="top">
+  <div class="bar wrap">
+    <div class="left">
+      <button class="menu" id="open-menu" type="button" aria-label="Open menu">
+        <span class="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span><b>MENU</b>
+      </button>
+      <i class="vr"></i>
+      <a class="logo" href="home.html">Folk</a>
+    </div>
+    <form class="search" id="search" role="search">
+      <input id="q" type="search" placeholder="Search news..." aria-label="Search news" autocomplete="off">
+      <button type="submit" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+    </form>
+    <div class="right">
+      <button class="icon only-small" id="search-toggle" type="button" aria-label="Search" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+      <div class="profile">
+        <button class="pbtn" id="profile-btn" type="button" aria-haspopup="true" aria-expanded="false"><span class="av" id="av">G</span><span class="pname" id="uname">Guest</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="pop" id="pop" hidden></div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap navrow">
+    <nav class="nav" aria-label="Categories">
+      <div class="cats"><div class="scroll" id="cats"></div><time id="today"></time></div>
+      <div class="subs" id="subs"></div>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="ticker"><span class="badge"><i></i>Breaking</span><b>City council approves a new flood warning system for Bogor</b><small>2 min ago</small></div>
+  <div class="empty" id="category-empty" hidden></div>
+
+  <section class="hero-row" data-news-section><a class="hero" id="hero" href="#"></a><div class="side" id="side"></div></section>
+
+  <section id="fresh-section" data-news-section><div class="sh"><h2 id="fresh-title">Fresh Update</h2><a href="all.html">See all</a></div><div class="cards" id="fresh"></div></section>
+
+  <section id="auto-section" data-news-section hidden><div class="sh"><h2 id="auto-title">Berita Otomatis</h2><div class="sh-tools"><small id="auto-updated"></small><button class="refresh" type="button" id="news-refresh">Refresh</button></div></div><div class="cards" id="auto-news"></div></section>
+
+  <div class="cols" data-news-section>
+    <section id="politics-section"><div class="sh"><h2 id="politics-title">Politics</h2><a href="politics.html">See all</a></div><div id="politics"></div><nav class="pager" id="pager" aria-label="Pages"></nav></section>
+    <aside class="aside">
+      <section id="popular-section"><div class="sh"><h2>Most Popular</h2></div><div id="popular"></div></section>
+      <section class="brief"><h3>Daily Brief</h3><p>The day’s top stories in your inbox every morning.</p><button type="button" id="subscribe">Subscribe</button></section>
+      <section><div class="sh"><h2>Explore topics</h2></div><div class="chips" id="topics"></div></section>
+    </aside>
+  </div>
+
+  <section id="archive-section" data-news-section hidden><div class="sh"><h2 id="archive-title">Arsip Berita</h2><small id="archive-count"></small></div><div class="cards" id="archive"></div><button class="more" type="button" id="more-news" hidden>Muat lebih banyak</button></section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <div class="f-top">
+    <div class="brand"><a class="logo" href="home.html">Folk</a><p>Folk Is A Platform Where News Update Everyday</p><div class="soc"><a href="#">Instagram</a><a href="#">YouTube</a><a href="#">TikTok</a></div></div>
+    <div class="f-cols" id="fcols"></div>
+  </div>
+  <div class="f-bot"><small>© 2026 Folk. All rights reserved.</small><div class="legal"><a href="#">Editorial Team</a><a href="#">Disclaimer</a><a href="#">Terms of Use</a><a href="#">Privacy Policy</a></div></div>
+</div></footer>
+
+<dialog id="drawer" aria-label="Menu"><button class="icon" id="close-menu" type="button" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><nav id="dnav"></nav></dialog>
+
+<script src="js/auth.js"></script>
+<script src="js/home.js"></script>
+</body></html>
