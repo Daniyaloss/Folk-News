@@ -3,6 +3,7 @@ import html
 import json
 import re
 import ssl
+import sys
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -211,6 +212,9 @@ def refresh():
             items.append(item)
         items.sort(key=lambda x: x["published"], reverse=True)
         items = items[:MAX_ITEMS]
+        if not items:
+            print("no items fetched; keeping previous cache")
+            return read_cache()
         for item in items[:MAX_IMAGES]:
             item["image"] = save_image(item["image"])
         keep = {Path(item["image"]).name for item in items if item["image"].startswith("Assets/news/")}
@@ -288,11 +292,14 @@ class Handler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     IMGDIR.mkdir(parents=True, exist_ok=True)
-    threading.Thread(target=scheduler, daemon=True).start()
-    server = ThreadingHTTPServer(("0.0.0.0", 8000), Handler)
-    print("Folk: http://localhost:8000/home.html")
-    print("API: http://localhost:8000/api/news | manual refresh: /api/refresh")
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
+    if "--once" in sys.argv:
+        refresh()
+    else:
+        threading.Thread(target=scheduler, daemon=True).start()
+        server = ThreadingHTTPServer(("0.0.0.0", 8000), Handler)
+        print("Folk: http://localhost:8000/home.html")
+        print("API: http://localhost:8000/api/news | manual refresh: /api/refresh")
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass

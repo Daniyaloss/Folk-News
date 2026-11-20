@@ -14,6 +14,14 @@ To try it on your phone or TV (same Wi-Fi as the laptop):
 
 Double-clicking `index.html` still opens the prototype, but browser rules block `file://` from loading the news JSON.
 
+## Live site
+- https://daniyaloss.github.io/Folk-News/
+- Home: https://daniyaloss.github.io/Folk-News/home.html
+- GitHub Actions refreshes the news at 07:00 WIB (`cron: '0 0 * * *'`) and deploys to GitHub Pages.
+- Manual refresh: repo → **Actions → Daily News → Run workflow**.
+- `python server.py --once` does the same refresh locally without starting the HTTP server.
+- The workflow rebuilds `data/news.json` and `Assets/news/` inside the Pages artifact, so the repo stays small.
+
 ## Live news
 - Sources: Detik, Tempo, Antara, CNN Indonesia.
 - The page tries `/api/news` first, then falls back to `data/news.json`, so cached news and thumbnails still appear on a plain HTTP server.
