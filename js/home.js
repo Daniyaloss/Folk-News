@@ -9,6 +9,22 @@ const cssUrl = u => `url('${encodeURI(String(u || '')).replace(/'/g, '%27')}')`;
 const picture = (url, i) => url
   ? `<span class="ph has-img" style="--t:${TINT[i % 5]};background-image:${cssUrl(url)}"></span>`
   : ph(i);
+const label = x => {
+  const raw = x.published || x.pubDate;
+  if (!raw) return x.timeLabel || '';
+  const date = new Date(raw);
+  if (isNaN(date)) return x.timeLabel || '';
+  const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Yesterday';
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+const cardHtml = (x, i) => `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<span class="cat">${esc(x.source || x.category || 'News')}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></a>`;
+const rowHtml = (x, i) => `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(x.category || x.source || 'News')}</span><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source || '')} · ${esc(label(x))}</small></div></a>`;
 
 const CATS = ['Home', 'News', 'Local', 'World', 'Law', 'Sports', 'Tech', 'Entertainment', 'Opinion', 'Infographics', 'Photo', 'Index'];
 const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World', Law: 'Law', Sports: 'Sports', Tech: 'Technology', Entertainment: 'Entertainment', Opinion: 'Opinion', Infographics: 'Infographics', Photo: 'Photo', Index: null };
@@ -80,6 +96,7 @@ document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click'
 $('subscribe').onclick = e => { e.target.textContent = 'Subscribed'; e.target.disabled = true; };
 $('search').onsubmit = e => e.preventDefault();
 $('q').oninput = applySearch;
+if ($('more-news')) $('more-news').onclick = renderMore;
 $('search-toggle').onclick = () => {
   const on = $('top').classList.toggle('searching');
   $('search-toggle').setAttribute('aria-expanded', on);
@@ -91,6 +108,9 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') $('pop').hid
 
 let LIVE = null;
 let CURRENT = 'Home';
+let ARCHIVE = [];
+let ARCHIVE_AT = 0;
+const ARCHIVE_STEP = 36;
 
 function isVideoItem(x) {
   const url = x.url || '';
@@ -116,15 +136,12 @@ function selectCategory(name) {
 function renderNews() {
   if (!LIVE) return;
   const wanted = CATEGORY_MAP[CURRENT];
-  const pool = wanted ? LIVE.items.filter(x => x.category === wanted) : LIVE.items;
+  let pool = wanted ? LIVE.items.filter(x => x.category === wanted) : LIVE.items;
   const empty = $('category-empty');
-  document.querySelectorAll('[data-news-section]').forEach(el => { el.hidden = !pool.length; });
-  empty.hidden = !!pool.length;
-  if (!pool.length) {
-    empty.textContent = `Belum ada berita untuk kategori ${CURRENT}.`;
-    return;
-  }
-  empty.textContent = '';
+  const fallback = !pool.length && !!wanted;
+  if (fallback) pool = LIVE.items;
+  empty.hidden = !fallback;
+  empty.textContent = fallback ? `Belum ada berita khusus ${CURRENT}; menampilkan berita terbaru.` : '';
 
   document.querySelector('.ticker').hidden = CURRENT !== 'Home';
   $('popular-section').hidden = CURRENT !== 'Home';
@@ -132,9 +149,21 @@ function renderNews() {
   $('fresh-title').textContent = CURRENT === 'Home' ? 'Fresh Update' : CURRENT === 'Index' ? 'Semua Berita' : `${CURRENT} · Terbaru`;
   $('politics-title').textContent = CURRENT === 'Home' ? 'Politics' : `${CURRENT} · Pilihan`;
   $('auto-title').textContent = CURRENT === 'Home' ? 'Berita Otomatis' : `${CURRENT} · Lainnya`;
+  $('archive-title').textContent = CURRENT === 'Home' || CURRENT === 'Index' ? 'Arsip Berita' : `${CURRENT} · Arsip`;
 
   const lead = pool.find(x => x.image) || pool[0];
   const rest = pool.filter(x => x.id !== lead.id);
+  const used = new Set([lead.id]);
+  const next = (list, n) => {
+    const picked = [];
+    for (const x of list) {
+      if (picked.length >= n) break;
+      if (used.has(x.id)) continue;
+      used.add(x.id);
+      picked.push(x);
+    }
+    return picked;
+  };
 
   $('hero').dataset.title = esc(t(lead.title));
   $('hero').href = lead.url || '#';
@@ -144,36 +173,49 @@ function renderNews() {
   $('hero').style.backgroundImage = lead.image
     ? `${cssUrl(lead.image)}, linear-gradient(135deg,#545f78,#1f2433)`
     : 'linear-gradient(135deg,#545f78,#1f2433)';
-  $('hero').innerHTML = `<span class="pill">${esc(lead.source || lead.category || 'News')}</span><h2>${esc(lead.title)}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(lead.timeLabel || '')}</small>`;
+  $('hero').innerHTML = `<span class="pill">${esc(lead.source || lead.category || 'News')}</span><h2>${esc(lead.title)}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>`;
 
-  $('side').innerHTML = rest.slice(0, 3).map((x, i) =>
-    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source)}</span><h3>${esc(x.title)}</h3><small>${esc(x.timeLabel)}</small></div></a>`
+  const side = next(rest, 4);
+  $('side').innerHTML = side.map((x, i) =>
+    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source || x.category || 'News')}</span><h3>${esc(x.title)}</h3><small>${esc(label(x))}</small></div></a>`
   ).join('');
 
-  const fresh = rest.slice(3, 8);
-  $('fresh').innerHTML = fresh.map((x, i) =>
-    `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<span class="cat">${esc(x.source)}</span><h3>${esc(x.title)}</h3><small>${esc(x.timeLabel)}</small></a>`
-  ).join('');
+  const fresh = next(rest, 20);
+  $('fresh').innerHTML = fresh.map(cardHtml).join('');
   $('fresh-section').hidden = !fresh.length;
 
-  const focus = [...rest.filter(x => /^(Law|Politics)$/.test(x.category)), ...rest]
-    .filter((x, i, all) => all.findIndex(y => y.id === x.id) === i)
-    .slice(0, 4);
-  $('politics').innerHTML = focus.map((x, i) =>
-    `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(x.category || x.source)}</span><h3>${esc(x.title)}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source)} · ${esc(x.timeLabel)}</small></div></a>`
-  ).join('');
+  const focus = next([...rest.filter(x => /^(Law|Politics)$/.test(x.category)), ...rest], 12);
+  $('politics').innerHTML = focus.map(rowHtml).join('');
   $('politics-section').hidden = !focus.length;
 
-  const auto = rest.slice(8, 14);
-  $('auto-news').innerHTML = auto.map((x, i) =>
-    `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(x.title))}">${picture(x.image, i)}<span class="cat">${esc(x.source)}</span><h3>${esc(x.title)}</h3><small>${esc(x.timeLabel)}</small></a>`
-  ).join('');
+  const auto = next(rest, 24);
+  $('auto-news').innerHTML = auto.map(cardHtml).join('');
   $('auto-section').hidden = !auto.length;
+
+  ARCHIVE = rest.filter(x => !used.has(x.id));
+  ARCHIVE_AT = 0;
+  $('archive').innerHTML = '';
+  $('archive-section').hidden = !ARCHIVE.length;
+  renderMore();
 
   if (LIVE.updatedAt && $('auto-updated')) {
     const stamp = new Date(LIVE.updatedAt);
     if (!isNaN(stamp)) $('auto-updated').textContent = 'Diperbarui ' + stamp.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
+  applySearch();
+}
+
+function renderMore() {
+  if (!ARCHIVE.length) {
+    $('more-news').hidden = true;
+    $('archive-count').textContent = '';
+    return;
+  }
+  const batch = ARCHIVE.slice(ARCHIVE_AT, ARCHIVE_AT + ARCHIVE_STEP);
+  ARCHIVE_AT += batch.length;
+  $('archive').insertAdjacentHTML('beforeend', batch.map(cardHtml).join(''));
+  $('more-news').hidden = ARCHIVE_AT >= ARCHIVE.length;
+  $('archive-count').textContent = `${ARCHIVE_AT}/${ARCHIVE.length} berita`;
   applySearch();
 }
 

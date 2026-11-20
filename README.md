@@ -40,5 +40,7 @@ Double-clicking `index.html` still opens the prototype, but browser rules block 
 ## Good to know
 - Accounts live in this browser (localStorage). Passwords are not stored, so any password of 6+ characters works for a registered email. "Continue with Google" is a stand-in.
 - "Most Popular" is still a placeholder section because RSS feeds do not contain reading counts; video items and the video section are not shown.
-- Clicking a category in the top nav or menu filters the live news to that category; "Home" and "Index" show everything.
+- Clicking a category in the top nav or menu filters the live news to that category; "Home" and "Index" show everything. If a category has no stories yet, the newest stories are shown with a notice instead of a blank page.
+- Every 07:00 refresh adds new stories to the saved history; yesterday's stories are kept as-is. Home renders hero + side + Fresh Update + Politics + Berita Otomatis + Arsip Berita, with a "Muat lebih banyak" button for the archive.
+- Stories older than 60 days (and their downloaded thumbnails) are removed automatically. Local thumbnails are capped at 160; older/extra stories keep their original image URL. The cache holds at most 6000 stories.
 - Sizes are in rem. Above 1920px wide the whole page scales up (TV / 4K).

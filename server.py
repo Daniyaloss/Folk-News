@@ -19,14 +19,21 @@ CACHE = ROOT / "data" / "news.json"
 IMGDIR = ROOT / "Assets" / "news"
 WIB = timezone(timedelta(hours=7))
 REFRESH_HOUR = 7
-MAX_ITEMS = 60
-MAX_IMAGES = 24
+MAX_ITEMS = 6000
+MAX_IMAGES = 160
+HISTORY_DAYS = 60
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) FolkNews/1.0"
 
 FEEDS = [
     ("Detik", "https://news.detik.com/berita/rss"),
     ("Tempo", "https://rss.tempo.co/nasional"),
+    ("Tempo", "https://rss.tempo.co/"),
     ("Antara", "https://www.antaranews.com/rss/terkini"),
+    ("Antara Olahraga", "https://www.antaranews.com/rss/olahraga"),
+    ("Antara Hiburan", "https://www.antaranews.com/rss/hiburan"),
+    ("Antara Ekonomi", "https://www.antaranews.com/rss/ekonomi"),
+    ("Antara Hukum", "https://www.antaranews.com/rss/hukum"),
+    ("Antara Dunia", "https://www.antaranews.com/rss/dunia"),
     ("CNN Indonesia", "https://www.cnnindonesia.com/rss"),
 ]
 
@@ -111,6 +118,17 @@ def parse_date(raw):
         return value.astimezone(WIB)
     except Exception:
         return datetime.now(WIB)
+
+
+def item_date(item):
+    try:
+        return datetime.fromisoformat(item["published"]).astimezone(WIB)
+    except Exception:
+        return datetime.now(WIB)
+
+
+def is_local_image(item):
+    return (item.get("image") or "").startswith("Assets/news/")
 
 
 def time_label(value, now):
@@ -207,43 +225,64 @@ def read_cache():
 def refresh():
     with LOCK:
         now = datetime.now(WIB)
+        cutoff = now - timedelta(days=HISTORY_DAYS)
+        previous = read_cache()
+        old_items = [
+            item for item in previous.get("items", [])
+            if item.get("id") and item.get("title") and item_date(item) >= cutoff
+        ]
+
         collected, errors = [], []
         for source, url in FEEDS:
             try:
                 collected.extend(parse_feed(source, url, now))
             except Exception as error:
                 errors.append(f"{source}: {error}")
-        seen = set()
-        items = []
+
+        known = {item["id"] for item in old_items}
+        fresh = []
         for item in collected:
-            if not item["title"] or not item["url"] or item["id"] in seen or is_video(item):
+            if not item["title"] or not item["url"] or item["id"] in known or is_video(item):
                 continue
-            seen.add(item["id"])
-            items.append(item)
+            if item_date(item) < cutoff:
+                continue
+            known.add(item["id"])
+            fresh.append(item)
+        fresh.sort(key=lambda x: x["published"], reverse=True)
+
+        local_names = {
+            Path(item["image"]).name for item in old_items if is_local_image(item)
+        }
+        for item in fresh:
+            if len(local_names) >= MAX_IMAGES:
+                break
+            item["image"] = save_image(item["image"])
+            if is_local_image(item):
+                local_names.add(Path(item["image"]).name)
+
+        items = fresh + old_items
         items.sort(key=lambda x: x["published"], reverse=True)
         items = items[:MAX_ITEMS]
-        if not items:
-            print("no items fetched; keeping previous cache")
-            return read_cache()
-        for item in items[:MAX_IMAGES]:
-            item["image"] = save_image(item["image"])
-        keep = {Path(item["image"]).name for item in items if item["image"].startswith("Assets/news/")}
+
+        keep = {Path(item["image"]).name for item in items if is_local_image(item)}
         for old in IMGDIR.glob("*.*"):
             if old.name not in keep:
                 try:
                     old.unlink()
                 except OSError:
                     pass
+
         payload = {
             "updatedAt": now.isoformat(),
             "sources": [source for source, _ in FEEDS],
             "errors": errors,
+            "historyDays": HISTORY_DAYS,
             "items": items,
         }
         temporary = CACHE.with_name("news.json.tmp")
         temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         temporary.replace(CACHE)
-        print(f"[{now:%H:%M:%S}] refreshed {len(items)} items; errors: {errors}")
+        print(f"[{now:%H:%M:%S}] added {len(fresh)} items, kept {len(old_items)}, total {len(items)}; errors: {errors}")
         return payload
 
 

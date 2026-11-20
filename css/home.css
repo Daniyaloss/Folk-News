@@ -7,6 +7,7 @@
 @media (min-width:1200px){:root{--g:3rem}}
 .wrap{width:calc(100% - 2*var(--g));max-width:97.5rem;margin-inline:auto}
 svg{display:block}
+[hidden]{display:none!important}
 
 body.home{position:relative;isolation:isolate;min-height:100vh;background:linear-gradient(#fff 40%,#f0f2fa)}
 .bg{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
@@ -122,13 +123,12 @@ a{-webkit-tap-highlight-color:transparent}
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5rem 1rem}
 .card{display:flex;flex-direction:column;gap:.375rem;text-decoration:none}
 .card .ph{margin-bottom:.375rem;aspect-ratio:292/164}
-/* phone 2 cols and tablet 4 cols show 4 cards (no orphan); laptop+ shows all 5 */
-.card:nth-child(5){display:none}
 @media (min-width:640px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (min-width:1024px){.cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:1.5rem}.card:nth-child(5){display:flex}}
+@media (min-width:1024px){.cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:1.5rem}}
 #auto-news{grid-template-columns:repeat(2,minmax(0,1fr))}
-#auto-news .card:nth-child(5){display:flex}
 @media (min-width:640px){#auto-news{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.more{display:block;margin:1.5rem auto 0;padding:.75rem 1.5rem;border:1px solid var(--line);border-radius:.75rem;background:#fff;color:var(--blue);font-weight:600;font-size:.9375rem}
+.more:hover{background:var(--soft)}
 
 .cols{display:grid;grid-template-columns:minmax(0,1fr);gap:2.75rem}
 @media (min-width:1024px){.cols{grid-template-columns:minmax(0,1060fr) minmax(0,468fr);gap:2rem}}
