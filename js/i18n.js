@@ -355,7 +355,7 @@
     'demo.politicsExcerpt4': 'Anggota mendengarkan masukan pengemudi, operator, dan perencana kota soal perubahan izin dan tarif.',
   };
   const DICT = { en: EN, id: ID };
-  const AUTH_PAGES = new Set(['login', 'signup']);
+  const AUTH_PAGES = new Set(['welcome', 'login', 'signup']);
   const PAGE = document.body ? document.body.dataset.page : '';
   let lang = 'id';
   try {
