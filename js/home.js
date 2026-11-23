@@ -14,6 +14,10 @@ const timeText = value => String(value || '')
   .replace('Yesterday', FolkI18n.t('yesterday'));
 const readsText = value => String(value || '').replace('reads', FolkI18n.t('readsWord'));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+const queryTokens = q => norm(q).split(/\s+/).filter(Boolean);
+const searchText = x => norm([titleText(x), x.title_en, x.excerpt, x.source, x.category, trCat(x.category)].join(' '));
+function syncUrl(q) { try { const url = new URL(location.href); if (q) url.searchParams.set('q', q); else url.searchParams.delete('q'); history.replaceState(null, '', url.pathname + url.search + url.hash); } catch {} }
 const cssUrl = u => `url('${encodeURI(String(u || '')).replace(/'/g, '%27')}')`;
 const picture = (url, i) => url
   ? `<span class="ph has-img" style="--t:${TINT[i % 5]};background-image:${cssUrl(url)}"></span>`
@@ -42,6 +46,8 @@ const TOPIC_PAGE = { Politics: 'politics.html', Sports: 'sports.html', Technolog
 const FOOT_PAGE = { 'About us': 'about.html', Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html' };
 const SUBS = ['Most Popular', 'Regions', 'Editor’s Picks', 'Explainers', 'Newsletter', 'Special Report'];
 const INITIAL_CATEGORY = (() => { const value = new URLSearchParams(location.search).get('cat') || document.body.dataset.category; return Object.prototype.hasOwnProperty.call(CATEGORY_MAP, value) ? value : 'Home'; })();
+const INITIAL_QUERY = new URLSearchParams(location.search).get('q') || '';
+if (INITIAL_QUERY) $('q').value = INITIAL_QUERY;
 const HERO = ['News', 'demo.hero', 'By Folk Newsroom, 5 min ago'];
 const HERO_EXCERPT = 'demo.heroExcerpt';
 const HERO_LINK = 'https://news.detik.com/berita/d-8761217/kpk-siap-patuhi-undang-undang-perampasan-aset-yang-disahkan-dpr';
@@ -98,7 +104,7 @@ $('close-menu').onclick = () => $('drawer').close();
 $('drawer').onclick = e => { if (e.target === $('drawer')) $('drawer').close(); }; // click on the backdrop
 
 // ---- small interactions ----
-$('dnav').onclick = e => { if (e.target.closest('a[data-cat]')) $('drawer').close(); };
+$('dnav').onclick = e => { if (e.target.closest('a[data-cat]')) { clearSearch(); $('drawer').close(); } };
 $('pager').onclick = e => {
   const b = e.target.closest('button'); if (!b || b.disabled || b.classList.contains('next')) return;
   $('pager').querySelectorAll('button').forEach(x => x.removeAttribute('aria-current'));
@@ -106,8 +112,11 @@ $('pager').onclick = e => {
 };
 document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
 $('subscribe').onclick = e => { e.target.textContent = FolkI18n.t('subscribed'); e.target.disabled = true; };
-$('search').onsubmit = e => e.preventDefault();
-$('q').oninput = applySearch;
+$('search').onsubmit = e => { e.preventDefault(); syncUrl($('q').value.trim()); applySearch(true); };
+$('q').oninput = () => { syncUrl($('q').value.trim()); applySearch(true); };
+$('search-clear').onclick = () => { clearSearch(); $('q').focus(); };
+$('search-more').onclick = () => renderSearch(false);
+$('cats').onclick = e => { if (e.target.closest('a[data-cat]')) clearSearch(); };
 if ($('more-news')) $('more-news').onclick = renderMore;
 $('search-toggle').onclick = () => {
   const on = $('top').classList.toggle('searching');
@@ -123,6 +132,10 @@ let CURRENT = INITIAL_CATEGORY;
 let ARCHIVE = [];
 let ARCHIVE_AT = 0;
 const ARCHIVE_STEP = 36;
+let SEARCH_Q = '';
+let SEARCH_ITEMS = [];
+let SEARCH_AT = 0;
+const SEARCH_STEP = 60;
 
 function isVideoItem(x) {
   const url = x.url || '';
@@ -130,9 +143,50 @@ function isVideoItem(x) {
   return /\bvideo\b/i.test(title) || /\/video\//i.test(url) || x.category === 'Video';
 }
 
-function applySearch() {
-  const q = $('q').value.trim().toLowerCase();
-  document.querySelectorAll('[data-title]').forEach(el => { el.hidden = !!q && !el.dataset.title.includes(q); });
+function applySearch(force = false) {
+  const raw = $('q').value.trim();
+  const tokens = queryTokens(raw);
+  if (!tokens.length) {
+    SEARCH_Q = '';
+    SEARCH_ITEMS = [];
+    SEARCH_AT = 0;
+    document.body.classList.remove('search-active');
+    $('search-results').hidden = true;
+    $('search-list').innerHTML = '';
+    $('search-empty').hidden = true;
+    $('search-more').hidden = true;
+    document.querySelectorAll('[data-title]').forEach(el => { el.hidden = false; });
+    return;
+  }
+  document.querySelectorAll('[data-title]').forEach(el => { el.hidden = !tokens.every(tok => norm(el.dataset.title).includes(tok)); });
+  if (!LIVE) return;
+  if (!force && SEARCH_Q === raw) return;
+  SEARCH_Q = raw;
+  SEARCH_ITEMS = LIVE.items.filter(x => {
+    const hay = searchText(x);
+    return tokens.every(tok => hay.includes(tok));
+  });
+  document.body.classList.add('search-active');
+  $('search-results').hidden = false;
+  $('search-count').textContent = FolkI18n.t('searchResults', { n: SEARCH_ITEMS.length, q: raw });
+  $('search-more').hidden = !SEARCH_ITEMS.length;
+  $('search-empty').hidden = !!SEARCH_ITEMS.length;
+  if (!SEARCH_ITEMS.length) $('search-empty').textContent = FolkI18n.t('searchEmpty', { q: raw });
+  renderSearch(true);
+}
+
+function renderSearch(reset) {
+  if (reset) { SEARCH_AT = 0; $('search-list').innerHTML = ''; }
+  const batch = SEARCH_ITEMS.slice(SEARCH_AT, SEARCH_AT + SEARCH_STEP);
+  SEARCH_AT += batch.length;
+  $('search-list').insertAdjacentHTML('beforeend', batch.map((x, i) => rowHtml(x, SEARCH_AT + i)).join(''));
+  $('search-more').hidden = SEARCH_AT >= SEARCH_ITEMS.length;
+}
+
+function clearSearch() {
+  $('q').value = '';
+  syncUrl('');
+  applySearch(true);
 }
 
 function selectCategory(name) {
@@ -215,7 +269,7 @@ function renderNews() {
     const stamp = new Date(LIVE.updatedAt);
     if (!isNaN(stamp)) $('auto-updated').textContent = FolkI18n.t('updated') + stamp.toLocaleString(FolkI18n.locale(), { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
-  applySearch();
+  applySearch(true);
 }
 
 function renderMore() {
@@ -250,6 +304,7 @@ function loadNews() {
 loadNews().catch(() => {});
 
 selectCategory(INITIAL_CATEGORY);
+applySearch(true);
 
 if ($('news-refresh')) {
   $('news-refresh').onclick = e => {
