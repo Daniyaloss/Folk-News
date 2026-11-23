@@ -89,6 +89,7 @@ const CATS = ['Home', 'News', 'Local', 'World', 'Law', 'Politics', 'Economy', 'H
 const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World', Law: 'Law', Politics: 'Politics', Economy: 'Economy', Health: 'Health', Sports: 'Sports', Tech: 'Technology', Entertainment: 'Entertainment', Opinion: 'Opinion', Infographics: 'Infographics', Photo: 'Photo', Index: null };
 const PAGES = { Home: 'home.html', News: 'news.html', Local: 'local.html', World: 'world.html', Law: 'law.html', Politics: 'politics.html', Economy: 'economy.html', Health: 'health.html', Sports: 'sports.html', Tech: 'tech.html', Entertainment: 'entertainment.html', Opinion: 'opinion.html', Infographics: 'infographics.html', Photo: 'photo.html', Index: 'all.html' };
 const TOPIC_PAGE = { Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Health: 'health.html', Economy: 'economy.html', Entertainment: 'entertainment.html' };
+const TOPIC_CATS = { Tech: ['Tech', 'Technology'], Politics: ['Politics'], Sports: ['Sports'], Health: ['Health'], Economy: ['Economy', 'Business'], Entertainment: ['Entertainment'], Law: ['Law'], Local: ['Local'], World: ['World'] };
 const FOOT_PAGE = { 'About us': 'about.html', Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html' };
 const SUBS = ['Most Popular', 'Regions', 'Editor’s Picks', 'Explainers', 'Newsletter', 'Special Report'];
 const INITIAL_CATEGORY = (() => { const value = new URLSearchParams(location.search).get('cat') || document.body.dataset.category; return Object.prototype.hasOwnProperty.call(CATEGORY_MAP, value) ? value : 'Home'; })();
@@ -425,6 +426,21 @@ function selectCategory(name) {
   renderNews();
 }
 
+function renderForYou() {
+  const section = $('for-you-section');
+  const topics = Folk.topics();
+  if (!section || !LIVE || !topics.length) { if (section) section.hidden = true; return; }
+  const cats = topics.flatMap(t => TOPIC_CATS[t] || [t]).flatMap(c => [c, trCat(c)]).map(norm).filter(Boolean);
+  const matches = LIVE.items.filter(x => {
+    const hay = norm([x.category, trCat(x.category || ''), x.title, x.title_en, x.excerpt].join(' '));
+    return cats.some(c => hay.includes(c));
+  }).slice(0, 15);
+  section.hidden = false;
+  $('for-you-empty').hidden = matches.length > 0;
+  if (!matches.length) $('for-you-empty').textContent = FolkI18n.t('forYouEmpty');
+  $('for-you').innerHTML = matches.map((x, i) => cardHtml(x, i)).join('');
+}
+
 function renderNews() {
   if (!LIVE) return;
   const wanted = CATEGORY_MAP[CURRENT];
@@ -491,6 +507,7 @@ function renderNews() {
   $('archive').innerHTML = '';
   $('archive-section').hidden = !ARCHIVE.length;
   renderMore();
+  renderForYou();
 
   if (LIVE.updatedAt && $('auto-updated')) {
     const stamp = new Date(LIVE.updatedAt);
