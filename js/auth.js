@@ -3,13 +3,47 @@
    so any password of 6+ characters logs a registered email in. Replace with a real API (and real Google sign-in) later. */
 const Folk = (() => {
   const read = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
-  const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const key = name => `folk:${(read('folk_session') || {}).id || 'guest'}:${name}`;
+  const store = {
+    key,
+    read: name => read(key(name)),
+    write: (name, value) => write(key(name), value)
+  };
+  const snapshot = x => ({
+    id: x.id || x.url,
+    title: x.title || '',
+    title_en: x.title_en || '',
+    url: x.url || '',
+    image: x.image || '',
+    source: x.source || '',
+    category: x.category || '',
+    excerpt: x.excerpt || '',
+    published: x.published || ''
+  });
+  const push = (name, item, limit) => {
+    if (!item || !(item.id || item.url)) return;
+    const snap = { ...snapshot(item), at: Date.now() };
+    const list = (store.read(name) || []).filter(x => x.id !== snap.id);
+    store.write(name, [snap, ...list].slice(0, limit));
+  };
   return {
     session: () => read('folk_session'),
     users: () => read('folk_users') || [],
     addUser: u => write('folk_users', [...(read('folk_users') || []), u]),
-    start(u) { write('folk_session', { name: u.name, email: u.email }); location.href = 'home.html'; },
-    logout() { localStorage.removeItem('folk_session'); location.href = 'index.html'; },
+    key, store,
+    start(u) { write('folk_session', { id: u.id || `u_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name: u.name, email: u.email }); location.href = 'home.html'; },
+    logout() { try { localStorage.removeItem('folk_session'); } catch {} location.href = 'index.html'; },
+    saved: () => store.read('saved') || [],
+    isSaved: id => (store.read('saved') || []).some(x => x.id === id),
+    save: item => push('saved', item, 200),
+    unsave: id => store.write('saved', (store.read('saved') || []).filter(x => x.id !== id)),
+    clearSaved: () => store.write('saved', []),
+    history: () => store.read('history') || [],
+    remember: item => push('history', item, 100),
+    clearHistory: () => store.write('history', []),
+    topics: () => store.read('topics') || [],
+    setTopics: list => store.write('topics', list)
   };
 })();
 
@@ -35,7 +69,7 @@ const Folk = (() => {
 
   if (page === 'login') {
     let who = null;
-    $('google').onclick = () => Folk.start({ name: FolkI18n.t('googleUser'), email: '' }); // shortcut: fake Google sign-in
+    $('google').onclick = () => Folk.start({ id: 'google', name: FolkI18n.t('googleUser'), email: '' }); // shortcut: fake Google sign-in
     $('email-form').onsubmit = e => {
       e.preventDefault();
       const email = $('email').value.trim().toLowerCase();
@@ -71,8 +105,9 @@ const Folk = (() => {
       if (!emailOk(email)) return say('msg', FolkI18n.t('validEmail'));
       if ($('password').value.length < 6) return say('msg', FolkI18n.t('passwordMin'));
       if (Folk.users().some(u => u.email === email)) return say('msg', FolkI18n.t('emailRegistered'));
-      Folk.addUser({ name, email });
-      Folk.start({ name, email });
+      const id = `u_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      Folk.addUser({ id, name, email });
+      Folk.start({ id, name, email });
     };
   }
 })();

@@ -138,6 +138,11 @@ a{-webkit-tap-highlight-color:transparent}
 .row h3{font-size:clamp(1rem,2.2vw,1.3125rem);line-height:1.33}
 .row p{font-size:.9375rem;line-height:1.47;color:var(--gray)}
 @media (max-width:559px){.row p{display:none}}
+.card,.mini,.row{position:relative}
+.save{position:absolute;top:.5rem;right:.5rem;z-index:2;display:grid;place-items:center;width:2rem;height:2rem;padding:0;border:0;border-radius:50%;background:rgb(255 255 255/.94);color:var(--gray);box-shadow:0 2px 8px rgb(0 0 0/.12);cursor:pointer}
+.save:hover{color:var(--ink);background:#fff}
+.save svg{width:1rem;height:1rem}
+.save[aria-pressed="true"]{background:var(--dark);border-color:var(--dark);color:#fff}
 .pager{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
 .pager button{min-width:2.5rem;height:2.5rem;padding:0 .75rem;border:1px solid var(--line);border-radius:.625rem;background:#fff;font-weight:600;font-size:.875rem}
 .pager button[aria-current]{background:var(--dark);border-color:var(--dark);color:#fff}

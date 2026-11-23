@@ -33,8 +33,16 @@
         <div class="tiles" id="tiles"></div>
         <div class="notice" id="notice" role="status" hidden></div>
       </div>
-      <div class="p-panel" id="panel-saved" role="tabpanel" hidden><div class="empty" id="empty-saved"></div></div>
-      <div class="p-panel" id="panel-history" role="tabpanel" hidden><div class="empty" id="empty-history"></div></div>
+      <div class="p-panel" id="panel-saved" role="tabpanel" hidden>
+        <div class="p-list-head"><p class="p-label" data-i18n="savedTitle">Saved stories</p><button type="button" class="btn ghost" id="clear-saved" data-i18n="clearAll">Clear all</button></div>
+        <div id="saved-list"></div>
+        <div class="empty" id="empty-saved"></div>
+      </div>
+      <div class="p-panel" id="panel-history" role="tabpanel" hidden>
+        <div class="p-list-head"><p class="p-label" data-i18n="historyTitle">Recently opened</p><button type="button" class="btn ghost" id="clear-history" data-i18n="clearAll">Clear all</button></div>
+        <div id="history-list"></div>
+        <div class="empty" id="empty-history"></div>
+      </div>
     </section>
     <aside class="gs" id="gs"></aside>
   </div>

@@ -36,6 +36,8 @@ body.page main{padding-top:2.5rem}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blue)}
 .p-panel{display:grid;gap:1rem;padding-top:1.5rem}
 .p-label{font-weight:600;font-size:1.125rem}
+.p-list-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.p-list-head .btn{min-height:2.5rem;padding:.375rem .75rem;font-size:.875rem;border-radius:.625rem}
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
 @media (min-width:640px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .tile{display:flex;justify-content:space-between;align-items:center;gap:.75rem;min-height:3.25rem;padding:0 1rem;border:1px solid var(--line);border-radius:.75rem;background:#fafafb;font-weight:600;font-size:1rem;text-align:left}

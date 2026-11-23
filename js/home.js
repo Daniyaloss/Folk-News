@@ -80,8 +80,10 @@ const label = x => {
   if (days === 1) return FolkI18n.t('yesterday');
   return date.toLocaleDateString(FolkI18n.locale(), { day: '2-digit', month: 'short', year: 'numeric' });
 };
-const cardHtml = (x, i) => `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(titleText(x)))}">${picture(x.image, i)}<span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(titleText(x))}</h3><small>${esc(label(x))}</small></a>`;
-const rowHtml = (x, i) => `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(titleText(x)))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(trCat(x.category || x.source || 'News'))}</span><h3>${esc(titleText(x))}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source || '')} · ${esc(label(x))}</small></div></a>`;
+const BOOKMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>';
+const saveButton = x => `<button class="save" type="button" data-id="${esc(x.id || x.url)}" aria-label="${FolkI18n.t('saveStory')}" aria-pressed="${SAVED_IDS.has(x.id || x.url)}">${BOOKMARK}</button>`;
+const cardHtml = (x, i) => `<a class="card" href="${esc(x.url)}" target="_blank" rel="noopener" data-id="${esc(x.id || x.url)}" data-title="${esc(t(titleText(x)))}">${picture(x.image, i)}<span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(titleText(x))}</h3><small>${esc(label(x))}</small>${saveButton(x)}</a>`;
+const rowHtml = (x, i) => `<a class="row" href="${esc(x.url)}" target="_blank" rel="noopener" data-id="${esc(x.id || x.url)}" data-title="${esc(t(titleText(x)))}">${picture(x.image, i + 1)}<div><span class="cat">${esc(trCat(x.category || x.source || 'News'))}</span><h3>${esc(titleText(x))}</h3><p>${esc(x.excerpt || '')}</p><small>${esc(x.source || '')} · ${esc(label(x))}</small></div>${saveButton(x)}</a>`;
 
 const CATS = ['Home', 'News', 'Local', 'World', 'Law', 'Politics', 'Economy', 'Health', 'Sports', 'Tech', 'Entertainment', 'Opinion', 'Infographics', 'Photo', 'Index'];
 const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World', Law: 'Law', Politics: 'Politics', Economy: 'Economy', Health: 'Health', Sports: 'Sports', Tech: 'Technology', Entertainment: 'Entertainment', Opinion: 'Opinion', Infographics: 'Infographics', Photo: 'Photo', Index: null };
@@ -201,6 +203,23 @@ $('search-toggle').onclick = () => {
 };
 $('profile-btn').onclick = e => { e.stopPropagation(); const open = $('pop').hidden; $('pop').hidden = !open; $('profile-btn').setAttribute('aria-expanded', open); };
 document.addEventListener('click', e => { $('pop').hidden = true; $('profile-btn').setAttribute('aria-expanded', 'false'); if (!e.target.closest('.search')) $('suggest').hidden = true; });
+document.addEventListener('click', e => {
+  const b = e.target.closest('.save');
+  if (b) {
+    e.preventDefault(); e.stopPropagation();
+    const id = b.dataset.id;
+    if (Folk.isSaved(id)) Folk.unsave(id);
+    else {
+      const item = LIVE && LIVE.items.find(x => (x.id || x.url) === id);
+      if (item) Folk.save(item);
+    }
+    refreshSaved();
+    return;
+  }
+  const a = e.target.closest('a[data-id][href^="http"]');
+  const item = a && LIVE && LIVE.items.find(x => (x.id || x.url) === a.dataset.id);
+  if (item) Folk.remember(item);
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('pop').hidden = true; $('suggest').hidden = true; } });
 window.addEventListener('popstate', () => { clearTimeout(INPUT_TIMER); $('q').value = new URLSearchParams(location.search).get('q') || ''; applySearch(true); });
 
@@ -218,6 +237,12 @@ let SEARCH_INDEX = new Map();
 let SEARCH_FULL = [];
 let SUGGEST_AT = -1;
 let INPUT_TIMER;
+let SAVED_IDS = new Set(Folk.saved().map(x => x.id));
+
+function refreshSaved() {
+  SAVED_IDS = new Set(Folk.saved().map(x => x.id));
+  document.querySelectorAll('.save').forEach(b => b.setAttribute('aria-pressed', SAVED_IDS.has(b.dataset.id)));
+}
 
 function isVideoItem(x) {
   const url = x.url || '';
@@ -433,6 +458,7 @@ function renderNews() {
     return picked;
   };
 
+  $('hero').dataset.id = esc(lead.id || lead.url);
   $('hero').dataset.title = esc(t(titleText(lead)));
   $('hero').href = lead.url || '#';
   $('hero').target = '_blank';
@@ -441,11 +467,11 @@ function renderNews() {
   $('hero').style.backgroundImage = lead.image
     ? `${cssUrl(lead.image)}, linear-gradient(135deg,#545f78,#1f2433)`
     : 'linear-gradient(135deg,#545f78,#1f2433)';
-  $('hero').innerHTML = `<span class="pill">${esc(lead.source || trCat(lead.category || 'News'))}</span><h2>${esc(titleText(lead))}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>`;
+  $('hero').innerHTML = `<span class="pill">${esc(lead.source || trCat(lead.category || 'News'))}</span><h2>${esc(titleText(lead))}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>${saveButton(lead)}`;
 
   const side = next(rest, 4);
   $('side').innerHTML = side.map((x, i) =>
-    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-title="${esc(t(titleText(x)))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(titleText(x))}</h3><small>${esc(label(x))}</small></div></a>`
+    `<a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" data-id="${esc(x.id || x.url)}" data-title="${esc(t(titleText(x)))}">${picture(x.image, i)}<div><span class="cat">${esc(x.source || trCat(x.category || 'News'))}</span><h3>${esc(titleText(x))}</h3><small>${esc(label(x))}</small></div></a>`
   ).join('');
 
   const fresh = next(rest, 20);
