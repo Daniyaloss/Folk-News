@@ -26,7 +26,6 @@
     <div class="right">
       <button class="icon lang-toggle" id="lang-toggle" type="button">ID</button>
       <button class="icon only-small" id="search-toggle" type="button" aria-label="Search news" data-i18n-aria="searchAria" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
-      <button class="icon" type="button" aria-label="Notifications" data-i18n-aria="notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
       <div class="profile">
         <button class="pbtn" id="profile-btn" type="button" aria-haspopup="true" aria-expanded="false"><span class="av" id="av">G</span><span class="pname" id="uname">Guest</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="pop" id="pop" hidden></div>
@@ -54,10 +53,9 @@
   <section id="for-you-section" data-news-section hidden><div class="sh"><h2 data-i18n="forYou">For you</h2><a href="profile.html?tab=topics" data-i18n="editTopics">Edit topics</a></div><div class="empty" id="for-you-empty" hidden></div><div class="cards" id="for-you"></div></section>
 
   <div class="cols" data-news-section>
-    <section id="politics-section"><div class="sh"><h2 id="politics-title" data-i18n="cat.Politics">Politics</h2><a href="politics.html" data-i18n="seeAll">See all</a></div><div id="politics"></div><nav class="pager" id="pager" aria-label="Pages" data-i18n-aria="pagesAria"></nav></section>
+    <section id="politics-section"><div class="sh"><h2 id="politics-title" data-i18n="cat.Politics">Politics</h2><a href="politics.html" data-i18n="seeAll">See all</a></div><div id="politics"></div></section>
     <aside class="aside">
-      <section id="popular-section"><div class="sh"><h2 data-i18n="mostPopular">Most Popular</h2></div><div id="popular"></div></section>
-      <section class="brief"><h3 data-i18n="dailyBrief">Daily Brief</h3><p data-i18n="briefText">The day’s top stories in your inbox every morning.</p><button type="button" id="subscribe" data-i18n="subscribe">Subscribe</button></section>
+      <section id="popular-section"><div class="sh"><h2 data-i18n="recentBySource">Recent by source</h2></div><div id="popular"></div></section>
       <section><div class="sh"><h2 data-i18n="exploreTopics">Explore topics</h2></div><div class="chips" id="topics"></div></section>
     </aside>
   </div>
@@ -72,7 +70,7 @@
     <div class="brand"><a class="logo" href="home.html">Folk</a><p data-i18n="brandTagline">Folk Is A Platform Where News Update Everyday</p><div class="soc"><a href="#">Instagram</a><a href="#">YouTube</a><a href="#">TikTok</a></div></div>
     <div class="f-cols" id="fcols"></div>
   </div>
-  <div class="f-bot"><small>© 2026 Folk. All rights reserved.</small><div class="legal"><a href="about.html" data-i18n="about">About</a><a href="#" data-i18n="legalEditorial">Editorial Team</a><a href="#" data-i18n="legalDisclaimer">Disclaimer</a><a href="#" data-i18n="termsOfUse">Terms of Use</a><a href="#" data-i18n="privacyPolicy">Privacy policy</a></div></div>
+  <div class="f-bot"><small>© 2026 Folk. All rights reserved.</small><div class="legal"><a href="about.html" data-i18n="about">About</a><a href="editorial.html" data-i18n="legalEditorial">Editorial Team</a><a href="disclaimer.html" data-i18n="legalDisclaimer">Disclaimer</a><a href="terms.html" data-i18n="termsOfUse">Terms of Use</a><a href="privacy.html" data-i18n="privacyPolicy">Privacy policy</a></div></div>
 </div></footer>
 
 <dialog id="drawer" aria-label="Menu"><button class="icon" id="close-menu" type="button" aria-label="Close menu" data-i18n-aria="closeMenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><nav id="dnav"></nav></dialog>

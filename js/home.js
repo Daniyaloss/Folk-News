@@ -90,7 +90,7 @@ const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World',
 const PAGES = { Home: 'home.html', News: 'news.html', Local: 'local.html', World: 'world.html', Law: 'law.html', Politics: 'politics.html', Economy: 'economy.html', Health: 'health.html', Sports: 'sports.html', Tech: 'tech.html', Entertainment: 'entertainment.html', Opinion: 'opinion.html', Infographics: 'infographics.html', Photo: 'photo.html', Index: 'all.html' };
 const TOPIC_PAGE = { Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Health: 'health.html', Economy: 'economy.html', Entertainment: 'entertainment.html' };
 const TOPIC_CATS = { Tech: ['Tech', 'Technology'], Politics: ['Politics'], Sports: ['Sports'], Health: ['Health'], Economy: ['Economy', 'Business'], Entertainment: ['Entertainment'], Law: ['Law'], Local: ['Local'], World: ['World'] };
-const FOOT_PAGE = { 'About us': 'about.html', Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html' };
+const FOOT_PAGE = { 'About us': 'about.html', 'Editorial team': 'editorial.html', Careers: 'about.html', Advertise: 'about.html', Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html', Saved: 'profile.html?tab=saved', Settings: 'profile.html', Help: 'help.html' };
 const SUBS = ['Most Popular', 'Regions', 'Editor’s Picks', 'Explainers', 'Newsletter', 'Special Report'];
 const INITIAL_CATEGORY = (() => { const value = new URLSearchParams(location.search).get('cat') || document.body.dataset.category; return Object.prototype.hasOwnProperty.call(CATEGORY_MAP, value) ? value : 'Home'; })();
 const INITIAL_QUERY = new URLSearchParams(location.search).get('q') || '';
@@ -105,7 +105,6 @@ const POLITICS = [
   ['demo.politics2', 'demo.politicsExcerpt2', 'By Bayu Hartono, 3 hours ago'],
   ['demo.politics3', 'demo.politicsExcerpt3', 'By Sinta Maharani, 5 hours ago'],
   ['demo.politics4', 'demo.politicsExcerpt4', 'By Dimas Prakoso, 8 hours ago']];
-const POPULAR = [['demo.side1', '12K reads'], ['demo.side2', '10K reads'], ['demo.fresh2', '8K reads'], ['demo.side3', '7K reads'], ['demo.fresh3', '5K reads']];
 const TOPICS = ['Politics', 'Sports', 'Technology', 'Health', 'Economy', 'Entertainment'];
 const FOOT = { footNews: ['Latest', 'Politics', 'Sports', 'Technology'], footExplore: ['Photo', 'Opinion', 'Infographics'], footFolk: ['About us', 'Editorial team', 'Careers', 'Advertise'], footAccount: ['Saved', 'Settings', 'Help'] };
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
@@ -122,8 +121,6 @@ $('hero').innerHTML = `<span class="pill">${trCat(HERO[0])}</span><h2>${demoText
 $('side').innerHTML = SIDE.map((s, i) => `<a class="mini" href="#" data-title="${esc(t(demoText(s[1])))}">${ph(i)}<div><span class="cat">${trCat(s[0])}</span><h3>${demoText(s[1])}</h3><small>${timeText(s[2])}</small></div></a>`).join('');
 $('fresh').innerHTML = FRESH.map((s, i) => `<a class="card" href="#" data-title="${esc(t(demoText(s[1])))}">${ph(i)}<span class="cat">${trCat(s[0])}</span><h3>${demoText(s[1])}</h3><small>${timeText(s[2])}</small></a>`).join('');
 $('politics').innerHTML = POLITICS.map((s, i) => `<a class="row" href="#" data-title="${esc(t(demoText(s[0])))}">${ph(i + 1)}<div><span class="cat">${trCat('Politics')}</span><h3>${demoText(s[0])}</h3><p>${demoText(s[1])}</p><small>${timeText(s[2])}</small></div></a>`).join('');
-$('pager').innerHTML = ['1', '2', '3', '…', '88'].map((p, i) => `<button type="button"${i ? '' : ' aria-current="page"'}${p === '…' ? ' disabled' : ''}>${p}</button>`).join('') + `<button class="next" type="button">${FolkI18n.t('next')}</button>`;
-$('popular').innerHTML = POPULAR.map((s, i) => `<a class="pop-item" href="#" data-title="${esc(t(demoText(s[0])))}"><b>${i + 1}</b><div><h3>${demoText(s[0])}</h3><small>${readsText(s[1])}</small></div></a>`).join('');
 $('topics').innerHTML = TOPICS.map(s => `<a href="${TOPIC_PAGE[s]}">${trCat(s)}</a>`).join('');
 $('fcols').innerHTML = Object.entries(FOOT).map(([h, l]) => `<div><h4>${FolkI18n.t(h)}</h4>${l.map(x => `<a href="${FOOT_PAGE[x] || '#'}">${FolkI18n.t('link.' + x, {}, x)}</a>`).join('')}</div>`).join('');
 
@@ -144,7 +141,7 @@ $('pop').innerHTML = me
 if (me) $('logout').onclick = Folk.logout;
 
 // ---- menu drawer ----
-$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('') + `<div class="sp"></div><a href="#">${FolkI18n.t('settings')}</a><a href="#">${FolkI18n.t('help')}</a>` + `<a href="profile.html">${FolkI18n.t('profile')}</a>` + (me ? `<button type="button" id="dlogout">${FolkI18n.t('logout')}</button>` : `<a href="index.html">${FolkI18n.t('signupLogin')}</a>`);
+$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('') + `<div class="sp"></div><a href="profile.html">${FolkI18n.t('settings')}</a><a href="help.html">${FolkI18n.t('help')}</a>` + `<a href="profile.html">${FolkI18n.t('profile')}</a>` + (me ? `<button type="button" id="dlogout">${FolkI18n.t('logout')}</button>` : `<a href="index.html">${FolkI18n.t('signupLogin')}</a>`);
 if (me) $('dlogout').onclick = Folk.logout;
 $('open-menu').onclick = () => $('drawer').showModal();
 $('close-menu').onclick = () => $('drawer').close();
@@ -152,13 +149,7 @@ $('drawer').onclick = e => { if (e.target === $('drawer')) $('drawer').close(); 
 
 // ---- small interactions ----
 $('dnav').onclick = e => { if (e.target.closest('a[data-cat]')) { clearSearch(); $('drawer').close(); } };
-$('pager').onclick = e => {
-  const b = e.target.closest('button'); if (!b || b.disabled || b.classList.contains('next')) return;
-  $('pager').querySelectorAll('button').forEach(x => x.removeAttribute('aria-current'));
-  b.setAttribute('aria-current', 'page');
-};
 document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
-$('subscribe').onclick = e => { e.target.textContent = FolkI18n.t('subscribed'); e.target.disabled = true; };
 $('search').onsubmit = e => { e.preventDefault(); clearTimeout(INPUT_TIMER); syncUrl($('q').value.trim()); $('suggest').hidden = true; applySearch(true); };
 $('q').oninput = () => { clearTimeout(INPUT_TIMER); INPUT_TIMER = setTimeout(() => { syncUrl($('q').value.trim()); applySearch(true); }, 120); };
 $('q').onkeydown = e => {
@@ -426,6 +417,22 @@ function selectCategory(name) {
   renderNews();
 }
 
+function renderRecentBySource() {
+  const section = $('popular-section');
+  if (!section || !LIVE) return;
+  const bySource = new Map();
+  for (const x of LIVE.items) {
+    const source = x.source || trCat(x.category || 'News');
+    if (!bySource.has(source)) bySource.set(source, []);
+    bySource.get(source).push(x);
+  }
+  const picks = [...bySource.entries()]
+    .map(([source, items]) => ({ source, item: items[0], count: items.length }))
+    .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source))
+    .slice(0, 6);
+  $('popular').innerHTML = picks.map((p, i) => `<a class="pop-item" href="${esc(p.item.url)}" target="_blank" rel="noopener" data-id="${esc(p.item.id)}" data-title="${esc(t(titleText(p.item)))}"><b>${i + 1}</b><div><h3>${esc(titleText(p.item))}</h3><small>${esc(p.source)} · ${esc(label(p.item))}</small></div></a>`).join('');
+}
+
 function renderForYou() {
   const section = $('for-you-section');
   const topics = Folk.topics();
@@ -454,7 +461,6 @@ function renderNews() {
 
   document.querySelector('.ticker').hidden = CURRENT !== 'Home';
   $('popular-section').hidden = CURRENT !== 'Home';
-  $('pager').hidden = CURRENT !== 'Home';
   $('fresh-title').textContent = CURRENT === 'Home' ? FolkI18n.t('freshUpdate') : CURRENT === 'Index' ? FolkI18n.t('allNews') : FolkI18n.t('latestLabel', { name });
   $('politics-title').textContent = CURRENT === 'Home' ? trCat('Politics') : FolkI18n.t('picksLabel', { name });
   $('auto-title').textContent = CURRENT === 'Home' ? FolkI18n.t('automaticNews') : FolkI18n.t('moreLabel', { name });
@@ -462,6 +468,13 @@ function renderNews() {
 
   const lead = pool.find(x => x.image) || pool[0];
   const rest = pool.filter(x => x.id !== lead.id);
+  const ticker = document.querySelector('.ticker');
+  if (ticker) {
+    const headline = ticker.querySelector('b');
+    const stamp = ticker.querySelector('small');
+    if (headline) { headline.textContent = titleText(lead); headline.removeAttribute('data-i18n'); }
+    if (stamp) { stamp.textContent = label(lead); stamp.removeAttribute('data-i18n'); }
+  }
   const used = new Set([lead.id]);
   const next = (list, n) => {
     const picked = [];
@@ -508,6 +521,7 @@ function renderNews() {
   $('archive-section').hidden = !ARCHIVE.length;
   renderMore();
   renderForYou();
+  renderRecentBySource();
 
   if (LIVE.updatedAt && $('auto-updated')) {
     const stamp = new Date(LIVE.updatedAt);
