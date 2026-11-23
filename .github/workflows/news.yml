@@ -27,6 +27,8 @@ jobs:
           python-version: '3.11'
       - name: Build category pages
         run: python build_pages.py
+      - name: Check generated pages
+        run: git diff --exit-code -- '*.html'
       - name: Refresh news
         run: python server.py --once
       - name: Stage site
