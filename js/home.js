@@ -39,7 +39,7 @@ const CATS = ['Home', 'News', 'Local', 'World', 'Law', 'Politics', 'Economy', 'H
 const CATEGORY_MAP = { Home: null, News: 'News', Local: 'Local', World: 'World', Law: 'Law', Politics: 'Politics', Economy: 'Economy', Health: 'Health', Sports: 'Sports', Tech: 'Technology', Entertainment: 'Entertainment', Opinion: 'Opinion', Infographics: 'Infographics', Photo: 'Photo', Index: null };
 const PAGES = { Home: 'home.html', News: 'news.html', Local: 'local.html', World: 'world.html', Law: 'law.html', Politics: 'politics.html', Economy: 'economy.html', Health: 'health.html', Sports: 'sports.html', Tech: 'tech.html', Entertainment: 'entertainment.html', Opinion: 'opinion.html', Infographics: 'infographics.html', Photo: 'photo.html', Index: 'all.html' };
 const TOPIC_PAGE = { Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Health: 'health.html', Economy: 'economy.html', Entertainment: 'entertainment.html' };
-const FOOT_PAGE = { Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html' };
+const FOOT_PAGE = { 'About us': 'about.html', Latest: 'home.html', Politics: 'politics.html', Sports: 'sports.html', Technology: 'tech.html', Photo: 'photo.html', Opinion: 'opinion.html', Infographics: 'infographics.html' };
 const SUBS = ['Most Popular', 'Regions', 'Editor’s Picks', 'Explainers', 'Newsletter', 'Special Report'];
 const INITIAL_CATEGORY = (() => { const value = new URLSearchParams(location.search).get('cat') || document.body.dataset.category; return Object.prototype.hasOwnProperty.call(CATEGORY_MAP, value) ? value : 'Home'; })();
 const HERO = ['News', 'demo.hero', 'By Folk Newsroom, 5 min ago'];
@@ -78,11 +78,20 @@ $('fcols').innerHTML = Object.entries(FOOT).map(([h, l]) => `<div><h4>${FolkI18n
 const me = Folk.session();
 $('uname').textContent = me ? me.name : FolkI18n.t('guest');
 $('av').textContent = (me ? me.name : 'G').trim().charAt(0).toUpperCase();
-$('pop').innerHTML = me ? `<button type="button" id="logout">${FolkI18n.t('logout')}</button>` : `<a href="login.html">${FolkI18n.t('login')}</a>`;
+const ICON = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const IC = {
+  user: ICON('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  login: ICON('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>'),
+  logout: ICON('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>'),
+};
+// two choices for a visitor (Sign Up / Log In, Profile); a logged-in user gets Profile and Log out
+$('pop').innerHTML = me
+  ? `<a href="profile.html">${IC.user}${FolkI18n.t('profile')}</a><button type="button" id="logout">${IC.logout}${FolkI18n.t('logout')}</button>`
+  : `<a href="index.html">${IC.login}${FolkI18n.t('signupLogin')}</a><a href="profile.html">${IC.user}${FolkI18n.t('profile')}</a>`;
 if (me) $('logout').onclick = Folk.logout;
 
 // ---- menu drawer ----
-$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('') + `<div class="sp"></div><a href="#">${FolkI18n.t('settings')}</a><a href="#">${FolkI18n.t('help')}</a>` + (me ? `<button type="button" id="dlogout">${FolkI18n.t('logout')}</button>` : `<a href="login.html">${FolkI18n.t('login')}</a>`);
+$('dnav').innerHTML = CATS.map(c => `<a href="${PAGES[c]}" data-cat="${c}"${c === INITIAL_CATEGORY ? ' aria-current="page"' : ''}>${trCat(c)}</a>`).join('') + `<div class="sp"></div><a href="#">${FolkI18n.t('settings')}</a><a href="#">${FolkI18n.t('help')}</a>` + `<a href="profile.html">${FolkI18n.t('profile')}</a>` + (me ? `<button type="button" id="dlogout">${FolkI18n.t('logout')}</button>` : `<a href="index.html">${FolkI18n.t('signupLogin')}</a>`);
 if (me) $('dlogout').onclick = Folk.logout;
 $('open-menu').onclick = () => $('drawer').showModal();
 $('close-menu').onclick = () => $('drawer').close();

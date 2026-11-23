@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ffffff">
+<title>Folk · Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css"><link rel="stylesheet" href="css/home.css"><link rel="stylesheet" href="css/pages.css">
+</head>
+<body class="home page" data-page="profile">
+<div class="bg" aria-hidden="true"><i class="dots l"></i><i class="dots r"></i><i class="rings l"></i><i class="rings r"></i></div>
+<div class="top"><div class="bar wrap">
+  <div class="left"><a class="logo" href="home.html">Folk</a></div>
+  <div class="right"><button class="icon lang-toggle" id="lang-toggle" type="button">ID</button><a class="hbtn" href="home.html" data-i18n="home">Home</a></div>
+</div></div>
+
+<main class="wrap">
+  <div class="p-grid">
+    <section class="p-main">
+      <div class="p-head">
+        <div class="p-av" id="p-av"></div>
+        <h1 class="p-name" id="p-name"></h1>
+        <p class="p-sub" id="p-sub"></p>
+        <p class="p-hint" id="p-hint"></p>
+        <div class="p-actions" id="p-actions"></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="topics" aria-selected="true" data-i18n="tabTopics">Topics</button>
+        <button type="button" role="tab" data-tab="saved" aria-selected="false" data-i18n="tabSaved">Saved</button>
+        <button type="button" role="tab" data-tab="history" aria-selected="false" data-i18n="tabHistory">History</button>
+      </div>
+      <div class="p-panel" id="panel-topics" role="tabpanel">
+        <p class="p-label" data-i18n="pickTopics">Pick topics to follow:</p>
+        <div class="tiles" id="tiles"></div>
+        <div class="notice" id="notice" role="status" hidden></div>
+      </div>
+      <div class="p-panel" id="panel-saved" role="tabpanel" hidden><div class="empty" id="empty-saved"></div></div>
+      <div class="p-panel" id="panel-history" role="tabpanel" hidden><div class="empty" id="empty-history"></div></div>
+    </section>
+    <aside class="gs" id="gs"></aside>
+  </div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <div class="f-top"><div class="brand"><a class="logo" href="home.html">Folk</a><p data-i18n="brandTagline">Folk Is A Platform Where News Update Everyday</p><div class="soc"><a href="#">Instagram</a><a href="#">YouTube</a><a href="#">TikTok</a></div></div></div>
+  <div class="f-bot"><small>© 2026 Folk. All rights reserved.</small><div class="legal"><a href="about.html" data-i18n="about">About</a><a href="#" data-i18n="legalEditorial">Editorial Team</a><a href="#" data-i18n="legalDisclaimer">Disclaimer</a><a href="#" data-i18n="termsOfUse">Terms of Use</a><a href="#" data-i18n="privacyPolicy">Privacy policy</a></div></div>
+</div></footer>
+<script src="js/i18n.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
+</body></html>

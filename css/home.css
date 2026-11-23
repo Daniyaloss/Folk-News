@@ -183,3 +183,8 @@ a{-webkit-tap-highlight-color:transparent}
 #dnav{display:grid;margin-top:1rem}
 #dnav a,#dnav button{display:block;padding:.875rem .5rem;border:0;border-bottom:1px solid var(--line);background:none;font-weight:600;font-size:1.0625rem;text-align:left;text-decoration:none;width:100%}
 #dnav .sp{height:1.25rem}
+
+/* profile popup: icon + label rows */
+.pop{min-width:12.5rem}
+.pop a,.pop button{display:flex;align-items:center;gap:.625rem}
+.pop svg{width:1.125rem;height:1.125rem;flex:none;color:var(--gray)}

@@ -1,0 +1,68 @@
+/* About + Profile pages. Reuses the Home look (header bar, background, footer) from home.css. */
+.hbtn{display:inline-flex;align-items:center;height:2.5rem;padding:0 1rem;border:1px solid var(--line);border-radius:1.25rem;background:#fff;font-weight:600;font-size:.9375rem;text-decoration:none}
+body.page main{padding-top:2.5rem}
+.narrow{max-width:50rem}
+
+/* About */
+.about h1{font:700 clamp(2.125rem,5.4vw,3.5rem)/1.08 var(--head);letter-spacing:-.01em;text-wrap:balance}
+.lead{margin-top:1rem;font-size:clamp(1.0625rem,2.2vw,1.375rem);line-height:1.5;color:var(--gray)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.stat{padding:1.25rem;border:1px solid var(--line);border-radius:.875rem;background:#fff}
+.stat b{display:block;margin-bottom:.375rem;font:700 2.25rem/1 var(--head)}
+.stat span{color:var(--gray);font-size:.9375rem}
+@media (max-width:559px){.stats{grid-template-columns:minmax(0,1fr)}}
+.about section{padding-top:2rem;border-top:1px solid var(--line)}
+.about h2{font-size:1.375rem;font-weight:700;line-height:1.25}
+.about section p{margin-top:.625rem;max-width:42rem;line-height:1.65;color:#3f3f46}
+.src{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.25rem}
+.src span{padding:.5rem 1rem;border:1px solid var(--line);border-radius:1.25rem;background:#fff;font-weight:600;font-size:.9375rem}
+.about .back{justify-self:start;padding-inline:1.75rem}
+
+/* Profile */
+.p-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:2rem}
+@media (min-width:1024px){.p-grid{grid-template-columns:minmax(0,1fr) 22.5rem;gap:2.5rem;align-items:start}}
+.p-main{min-width:0}
+.p-head{display:grid;justify-items:center;gap:.375rem;padding:1rem 0 2rem;text-align:center}
+.p-av{display:grid;place-items:center;width:8rem;height:8rem;margin-bottom:.75rem;border-radius:50%;background:linear-gradient(135deg,#e6eaf6,#d6ddf2);color:#8a93b2}
+.p-av svg{width:3.5rem;height:3.5rem}
+.p-av.me{background:var(--ink);color:#fff;font:700 3rem/1 var(--head)}
+.p-name{font-size:1.625rem;font-weight:700;line-height:1.2}
+.p-sub{color:var(--gray);overflow-wrap:anywhere}
+.p-hint{color:var(--gray);font-size:.9375rem}
+.p-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:.875rem}
+.p-actions .btn{min-width:8.5rem;font-size:1rem}
+.tabs{display:flex;gap:1.75rem;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs button{flex:none;margin-bottom:-1px;padding:.75rem .125rem;border:0;border-bottom:2px solid transparent;background:none;font-weight:600;font-size:1rem;color:var(--gray)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--blue)}
+.p-panel{display:grid;gap:1rem;padding-top:1.5rem}
+.p-label{font-weight:600;font-size:1.125rem}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+@media (min-width:640px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tile{display:flex;justify-content:space-between;align-items:center;gap:.75rem;min-height:3.25rem;padding:0 1rem;border:1px solid var(--line);border-radius:.75rem;background:#fafafb;font-weight:600;font-size:1rem;text-align:left}
+.tile svg{width:1.125rem;height:1.125rem;flex:none}
+.tile[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.notice{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.875rem 1rem;border-radius:.75rem;background:#eef1ff;color:#1b2f9e;font-size:.9375rem}
+.notice a{font-weight:600;text-decoration:underline}
+.empty{display:grid;justify-items:center;gap:.75rem;padding:2.5rem 1rem;text-align:center;color:var(--gray)}
+.empty svg{width:2.5rem;height:2.5rem;color:var(--mute)}
+
+.gs{overflow:hidden;border:1px solid #c8d1fb;border-radius:1rem;background:#fff}
+.gs-top{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:1.25rem 1.5rem;background:#eef1ff}
+.ring{width:4rem;height:4rem;flex:none}
+.ring circle{fill:none;stroke:#d4dbfb;stroke-width:6}
+.ring .v{stroke:var(--blue);stroke-linecap:round;transform:rotate(-90deg);transform-origin:32px 32px}
+.gs-top b{display:block;font:700 1.75rem/1.1 var(--head)}
+.gs-top span{font-weight:600;font-size:.9375rem;color:#3f3f46}
+.gs-top .btn{width:100%;min-height:2.75rem;font-size:1rem}
+.gs-body{display:grid;gap:1rem;padding:1.25rem 1.5rem 1.5rem}
+.gs-body p{font-size:.9375rem;line-height:1.5}
+.steps{display:grid;gap:.75rem;margin:0;padding:0;list-style:none}
+.steps li{display:flex;align-items:center;gap:.75rem;font-size:.9375rem}
+.steps i{display:grid;place-items:center;flex:none;width:1.25rem;height:1.25rem;border:2px solid #b8bfd6;border-radius:50%}
+.steps i svg{width:.75rem;height:.75rem;stroke-width:3}
+.steps .done i{border-color:var(--blue);background:var(--blue);color:#fff}
+.steps .done span{color:var(--gray);text-decoration:line-through}
+.steps em{margin-left:auto;padding:.125rem .5rem;border-radius:1rem;background:var(--soft);color:var(--gray);font-style:normal;font-size:.75rem;font-weight:600}
+
+/* the dot grids sit in the side margins; hide them when the margins are too narrow */
+@media (max-width:1699px){body.page .dots{display:none}}
