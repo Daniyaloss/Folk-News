@@ -19,7 +19,7 @@
       <a class="logo" href="home.html">Folk</a>
     </div>
     <form class="search" id="search" role="search">
-      <input id="q" type="search" placeholder="Search news..." data-i18n-placeholder="searchPlaceholder" aria-label="Search news" data-i18n-aria="searchAria" autocomplete="off">
+      <input id="q" type="search" role="combobox" aria-controls="suggest" aria-autocomplete="list" aria-expanded="false" placeholder="Search news..." data-i18n-placeholder="searchPlaceholder" aria-label="Search news" data-i18n-aria="searchAria" autocomplete="off">
       <button type="submit" aria-label="Search news" data-i18n-aria="searchAria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
       <div class="suggest" id="suggest" role="listbox" hidden></div>
     </form>
@@ -62,7 +62,7 @@
 
   <section id="archive-section" data-news-section hidden><div class="sh"><h2 id="archive-title" data-i18n="newsArchive">News Archive</h2><small id="archive-count"></small></div><div class="cards" id="archive"></div><button class="more" type="button" id="more-news" hidden data-i18n="loadMore">Load more</button></section>
 
-  <section id="search-results" hidden><div class="sh"><h2 id="search-count"></h2><button class="more" type="button" id="search-clear" data-i18n="clearSearch">Clear search</button></div><div class="empty" id="search-empty" hidden></div><div id="search-list"></div><button class="more" type="button" id="search-more" hidden data-i18n="loadMore">Load more</button></section>
+  <section id="search-results" hidden><div class="sh"><h2 id="search-count"></h2><small id="search-hint" hidden></small><button class="more" type="button" id="search-clear" data-i18n="clearSearch">Clear search</button></div><div class="empty" id="search-empty" hidden></div><div id="search-list"></div><button class="more" type="button" id="search-more" hidden data-i18n="loadMore">Load more</button></section>
 </main>
 
 <footer class="foot"><div class="wrap">

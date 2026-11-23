@@ -198,6 +198,7 @@ body.search-active .ticker,body.search-active #category-empty,body.search-active
 #search-results[hidden]{display:none}
 #search-results>.sh{margin-bottom:1rem}
 #search-results>.sh h2{font-size:1.25rem}
+#search-hint{color:var(--gray);font-size:.8125rem}
 #search-clear{margin:0}
 #search-list{display:grid;gap:1.25rem;border-top:1px solid var(--line);padding-top:1.25rem}
 #search-more{margin:1.5rem 0 0;justify-self:center}

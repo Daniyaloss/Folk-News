@@ -16,12 +16,16 @@ const readsText = value => String(value || '').replace('reads', FolkI18n.t('read
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 const words = s => norm(s).split(/[^a-z0-9]+/).filter(Boolean);
-const indexWords = s => words(s).filter(w => w.length > 1);
+const STOP = new Set(['https', 'http', 'www', 'com', 'org', 'news', 'berita', 'the', 'dan', 'yang', 'di', 'ke', 'dari', 'untuk', 'dengan', 'ini', 'itu', 'a', 'an']);
+const indexWords = s => words(s).filter(w => w.length > 1 && !STOP.has(w));
 const queryTokens = q => words(q);
-const searchText = x => norm([titleText(x), x.title_en, x.excerpt, x.source, x.category, trCat(x.category), x.url].join(' '));
+const urlText = u => words(String(u || '').split('/').filter(Boolean).pop() || '').join(' ');
+const searchText = x => norm([x.title, x.title_en, x.excerpt, x.source, x.category, trCat(x.category), urlText(x.url)].join(' '));
 const SYNONYMS = {
-  banjir: ['genangan', 'flu', 'flood'],
+  banjir: ['genangan', 'flood'],
   flood: ['banjir', 'genangan'],
+  flu: ['influenza', 'kesehatan', 'sakit'],
+  influenza: ['flu', 'kesehatan'],
   ekonomi: ['economy', 'bisnis', 'keuangan', 'business', 'finance'],
   bisnis: ['ekonomi', 'economy', 'keuangan', 'business'],
   keuangan: ['ekonomi', 'economy', 'bisnis', 'finance'],
@@ -152,8 +156,8 @@ $('pager').onclick = e => {
 };
 document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
 $('subscribe').onclick = e => { e.target.textContent = FolkI18n.t('subscribed'); e.target.disabled = true; };
-$('search').onsubmit = e => { e.preventDefault(); syncUrl($('q').value.trim()); $('suggest').hidden = true; applySearch(true); };
-$('q').oninput = () => { syncUrl($('q').value.trim()); applySearch(true); };
+$('search').onsubmit = e => { e.preventDefault(); clearTimeout(INPUT_TIMER); syncUrl($('q').value.trim()); $('suggest').hidden = true; applySearch(true); };
+$('q').oninput = () => { clearTimeout(INPUT_TIMER); INPUT_TIMER = setTimeout(() => { syncUrl($('q').value.trim()); applySearch(true); }, 120); };
 $('q').onkeydown = e => {
   const box = $('suggest');
   if (box.hidden) return;
@@ -161,15 +165,18 @@ $('q').onkeydown = e => {
   if (!opts.length) return;
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
-    SUGGEST_AT = (SUGGEST_AT + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length;
-    opts.forEach((b, i) => b.setAttribute('aria-selected', i === SUGGEST_AT));
+    setActiveSuggest((SUGGEST_AT + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length);
   } else if (e.key === 'Enter' && SUGGEST_AT >= 0) {
     e.preventDefault();
     opts[SUGGEST_AT].click();
   } else if (e.key === 'Escape') {
     box.hidden = true;
-    SUGGEST_AT = -1;
+    setActiveSuggest(-1);
   }
+};
+$('suggest').onmouseover = e => {
+  const b = e.target.closest('button[data-s]');
+  if (b) setActiveSuggest([...$('suggest').querySelectorAll('button[data-s]')].indexOf(b));
 };
 $('suggest').onclick = e => {
   const b = e.target.closest('button[data-s]');
@@ -195,6 +202,7 @@ $('search-toggle').onclick = () => {
 $('profile-btn').onclick = e => { e.stopPropagation(); const open = $('pop').hidden; $('pop').hidden = !open; $('profile-btn').setAttribute('aria-expanded', open); };
 document.addEventListener('click', e => { $('pop').hidden = true; $('profile-btn').setAttribute('aria-expanded', 'false'); if (!e.target.closest('.search')) $('suggest').hidden = true; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('pop').hidden = true; $('suggest').hidden = true; } });
+window.addEventListener('popstate', () => { clearTimeout(INPUT_TIMER); $('q').value = new URLSearchParams(location.search).get('q') || ''; applySearch(true); });
 
 let LIVE = null;
 let CURRENT = INITIAL_CATEGORY;
@@ -209,6 +217,7 @@ let SEARCH_TERMS = [];
 let SEARCH_INDEX = new Map();
 let SEARCH_FULL = [];
 let SUGGEST_AT = -1;
+let INPUT_TIMER;
 
 function isVideoItem(x) {
   const url = x.url || '';
@@ -295,12 +304,32 @@ function suggestTerms(raw) {
   return out;
 }
 
+function setActiveSuggest(i) {
+  SUGGEST_AT = i;
+  const opts = [...$('suggest').querySelectorAll('button[data-s]')];
+  opts.forEach((b, k) => b.setAttribute('aria-selected', k === i));
+  $('q').setAttribute('aria-activedescendant', opts[i] ? opts[i].id : '');
+}
+
+function demoItems() {
+  return [...document.querySelectorAll('[data-title]')].map(el => ({
+    id: el.dataset.title,
+    title: el.dataset.title,
+    excerpt: (el.querySelector('p') || {}).textContent || '',
+    source: (el.querySelector('.cat') || {}).textContent || '',
+    category: 'News',
+    url: el.href || '#',
+    image: ''
+  }));
+}
+
 function renderSuggest(raw) {
   const box = $('suggest');
   const list = suggestTerms(raw);
-  SUGGEST_AT = -1;
+  setActiveSuggest(-1);
+  $('q').setAttribute('aria-expanded', !!list.length);
   if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
-  box.innerHTML = list.map(w => `<button type="button" role="option" data-s="${esc(w)}" aria-selected="false">${esc(w)}</button>`).join('');
+  box.innerHTML = list.map((w, i) => `<button type="button" id="sug-${i}" role="option" data-s="${esc(w)}" aria-selected="false">${esc(w)}</button>`).join('');
   box.hidden = false;
 }
 
@@ -316,20 +345,31 @@ function applySearch(force = false) {
     $('search-results').hidden = true;
     $('search-list').innerHTML = '';
     $('search-empty').hidden = true;
+    $('search-hint').hidden = true;
     $('search-more').hidden = true;
     $('suggest').hidden = true;
     document.querySelectorAll('[data-title]').forEach(el => { el.hidden = false; });
     return;
   }
   document.querySelectorAll('[data-title]').forEach(el => { el.hidden = !tokens.every(tok => norm(el.dataset.title).includes(tok)); });
-  if (!LIVE) return;
-  if (!force && SEARCH_Q === raw) return;
+  if (!force && SEARCH_Q === raw && LIVE) return;
   SEARCH_Q = raw;
-  SEARCH_ITEMS = findMatches(raw).map(hit => LIVE.items[hit.i]);
+  const phrases = [...raw.matchAll(/"([^"]+)"/g)].map(m => norm(m[1])).filter(Boolean);
+  if (!LIVE) {
+    SEARCH_ITEMS = demoItems().filter(x => {
+      const hay = norm([x.title, x.excerpt, x.source].join(' '));
+      return tokens.every(tok => hay.includes(tok)) && phrases.every(p => hay.includes(p));
+    });
+    $('search-hint').hidden = false;
+    $('search-hint').textContent = FolkI18n.t('searchNoCache');
+    $('search-more').hidden = true;
+  } else {
+    SEARCH_ITEMS = findMatches(raw).map(hit => LIVE.items[hit.i]);
+    $('search-hint').hidden = true;
+  }
   document.body.classList.add('search-active');
   $('search-results').hidden = false;
   $('search-count').textContent = FolkI18n.t('searchResults', { n: SEARCH_ITEMS.length, q: raw });
-  $('search-more').hidden = !SEARCH_ITEMS.length;
   $('search-empty').hidden = !!SEARCH_ITEMS.length;
   if (!SEARCH_ITEMS.length) $('search-empty').textContent = FolkI18n.t('searchEmpty', { q: raw });
   renderSearch(true);
@@ -337,9 +377,10 @@ function applySearch(force = false) {
 
 function renderSearch(reset) {
   if (reset) { SEARCH_AT = 0; $('search-list').innerHTML = ''; }
+  const start = SEARCH_AT;
   const batch = SEARCH_ITEMS.slice(SEARCH_AT, SEARCH_AT + SEARCH_STEP);
   SEARCH_AT += batch.length;
-  $('search-list').insertAdjacentHTML('beforeend', batch.map((x, i) => rowHtml(x, SEARCH_AT + i)).join(''));
+  $('search-list').insertAdjacentHTML('beforeend', batch.map((x, i) => rowHtml(x, start + i)).join(''));
   $('search-more').hidden = SEARCH_AT >= SEARCH_ITEMS.length;
 }
 
