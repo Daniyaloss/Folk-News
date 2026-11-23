@@ -15,8 +15,48 @@ const timeText = value => String(value || '')
 const readsText = value => String(value || '').replace('reads', FolkI18n.t('readsWord'));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-const queryTokens = q => norm(q).split(/\s+/).filter(Boolean);
-const searchText = x => norm([titleText(x), x.title_en, x.excerpt, x.source, x.category, trCat(x.category)].join(' '));
+const words = s => norm(s).split(/[^a-z0-9]+/).filter(Boolean);
+const indexWords = s => words(s).filter(w => w.length > 1);
+const queryTokens = q => words(q);
+const searchText = x => norm([titleText(x), x.title_en, x.excerpt, x.source, x.category, trCat(x.category), x.url].join(' '));
+const SYNONYMS = {
+  banjir: ['genangan', 'flu', 'flood'],
+  flood: ['banjir', 'genangan'],
+  ekonomi: ['economy', 'bisnis', 'keuangan', 'business', 'finance'],
+  bisnis: ['ekonomi', 'economy', 'keuangan', 'business'],
+  keuangan: ['ekonomi', 'economy', 'bisnis', 'finance'],
+  kesehatan: ['medis', 'sakit', 'health'],
+  health: ['kesehatan', 'medis'],
+  olahraga: ['sport', 'sports', 'sepak', 'bola', 'football'],
+  sports: ['olahraga', 'sepak', 'bola'],
+  bola: ['sepak', 'olahraga', 'football'],
+  hukum: ['law', 'kriminal'],
+  politik: ['politics', 'pemilu', 'election'],
+  teknologi: ['tech', 'technology', 'digital'],
+  tech: ['teknologi', 'technology'],
+  pendidikan: ['sekolah', 'education', 'belajar'],
+  sekolah: ['pendidikan', 'education'],
+  cuaca: ['hujan', 'weather'],
+  hujan: ['cuaca', 'weather']
+};
+const expand = token => [...new Set([token, ...(SYNONYMS[token] || [])])];
+const distFor = token => token.length >= 6 ? 2 : token.length >= 3 ? 1 : 0;
+function editDistance(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    let rowMin = i;
+    for (let j = 1; j <= b.length; j++) {
+      const v = Math.min(cur[j - 1] + 1, prev[j] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      cur[j] = v;
+      if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > max) return max + 1;
+    prev = cur;
+  }
+  return prev[b.length];
+}
 function syncUrl(q) { try { const url = new URL(location.href); if (q) url.searchParams.set('q', q); else url.searchParams.delete('q'); history.replaceState(null, '', url.pathname + url.search + url.hash); } catch {} }
 const cssUrl = u => `url('${encodeURI(String(u || '')).replace(/'/g, '%27')}')`;
 const picture = (url, i) => url
@@ -112,8 +152,37 @@ $('pager').onclick = e => {
 };
 document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
 $('subscribe').onclick = e => { e.target.textContent = FolkI18n.t('subscribed'); e.target.disabled = true; };
-$('search').onsubmit = e => { e.preventDefault(); syncUrl($('q').value.trim()); applySearch(true); };
+$('search').onsubmit = e => { e.preventDefault(); syncUrl($('q').value.trim()); $('suggest').hidden = true; applySearch(true); };
 $('q').oninput = () => { syncUrl($('q').value.trim()); applySearch(true); };
+$('q').onkeydown = e => {
+  const box = $('suggest');
+  if (box.hidden) return;
+  const opts = [...box.querySelectorAll('button[data-s]')];
+  if (!opts.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    SUGGEST_AT = (SUGGEST_AT + (e.key === 'ArrowDown' ? 1 : -1) + opts.length) % opts.length;
+    opts.forEach((b, i) => b.setAttribute('aria-selected', i === SUGGEST_AT));
+  } else if (e.key === 'Enter' && SUGGEST_AT >= 0) {
+    e.preventDefault();
+    opts[SUGGEST_AT].click();
+  } else if (e.key === 'Escape') {
+    box.hidden = true;
+    SUGGEST_AT = -1;
+  }
+};
+$('suggest').onclick = e => {
+  const b = e.target.closest('button[data-s]');
+  if (!b) return;
+  const parts = queryTokens($('q').value.replace(/"[^"]*"/g, ' '));
+  if (parts.length) parts[parts.length - 1] = b.dataset.s;
+  const next = parts.length ? parts.join(' ') : b.dataset.s;
+  $('q').value = next;
+  syncUrl(next);
+  $('suggest').hidden = true;
+  applySearch(true);
+  $('q').focus();
+};
 $('search-clear').onclick = () => { clearSearch(); $('q').focus(); };
 $('search-more').onclick = () => renderSearch(false);
 $('cats').onclick = e => { if (e.target.closest('a[data-cat]')) clearSearch(); };
@@ -124,8 +193,8 @@ $('search-toggle').onclick = () => {
   if (on) $('q').focus();
 };
 $('profile-btn').onclick = e => { e.stopPropagation(); const open = $('pop').hidden; $('pop').hidden = !open; $('profile-btn').setAttribute('aria-expanded', open); };
-document.addEventListener('click', () => { $('pop').hidden = true; $('profile-btn').setAttribute('aria-expanded', 'false'); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') $('pop').hidden = true; });
+document.addEventListener('click', e => { $('pop').hidden = true; $('profile-btn').setAttribute('aria-expanded', 'false'); if (!e.target.closest('.search')) $('suggest').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('pop').hidden = true; $('suggest').hidden = true; } });
 
 let LIVE = null;
 let CURRENT = INITIAL_CATEGORY;
@@ -136,6 +205,10 @@ let SEARCH_Q = '';
 let SEARCH_ITEMS = [];
 let SEARCH_AT = 0;
 const SEARCH_STEP = 60;
+let SEARCH_TERMS = [];
+let SEARCH_INDEX = new Map();
+let SEARCH_FULL = [];
+let SUGGEST_AT = -1;
 
 function isVideoItem(x) {
   const url = x.url || '';
@@ -143,10 +216,99 @@ function isVideoItem(x) {
   return /\bvideo\b/i.test(title) || /\/video\//i.test(url) || x.category === 'Video';
 }
 
+function buildIndex() {
+  SEARCH_TERMS = [];
+  SEARCH_INDEX = new Map();
+  SEARCH_FULL = [];
+  if (!LIVE) return;
+  LIVE.items.forEach((x, i) => {
+    const full = searchText(x);
+    SEARCH_FULL.push(full);
+    indexWords(full).forEach(w => {
+      let list = SEARCH_INDEX.get(w);
+      if (!list) { list = []; SEARCH_INDEX.set(w, list); SEARCH_TERMS.push(w); }
+      list.push(i);
+    });
+  });
+  SEARCH_TERMS.sort();
+}
+
+function matchTerm(token) {
+  const max = distFor(token);
+  if (SEARCH_INDEX.has(token)) return [{ term: token, score: 10 }];
+  const found = [];
+  const low = Math.max(0, token.length - max);
+  const high = token.length + max;
+  for (const term of SEARCH_TERMS) {
+    if (term.length < low || term.length > high) continue;
+    if (term.startsWith(token)) { found.push({ term, score: 9 }); continue; }
+    if (!max) continue;
+    const d = editDistance(token, term, max);
+    if (d <= max) found.push({ term, score: 8 - d });
+  }
+  return found.sort((a, b) => b.score - a.score).slice(0, 12);
+}
+
+function findMatches(raw) {
+  const phrases = [...raw.matchAll(/"([^"]+)"/g)].map(m => norm(m[1])).filter(Boolean);
+  const tokens = queryTokens(raw.replace(/"[^"]*"/g, ' '));
+  const groups = tokens.map(token => {
+    const scores = new Map();
+    expand(token).forEach(alt => {
+      matchTerm(alt).forEach(hit => {
+        for (const i of SEARCH_INDEX.get(hit.term) || []) {
+          if (!scores.has(i) || scores.get(i) < hit.score) scores.set(i, hit.score);
+        }
+      });
+    });
+    return scores;
+  });
+  let hits = groups.length
+    ? [...groups[0]].map(([i, score]) => ({ i, score }))
+    : LIVE.items.map((_, i) => ({ i, score: 0 }));
+  for (const group of groups.slice(1)) {
+    hits = hits.filter(h => group.has(h.i)).map(h => ({ i: h.i, score: h.score + group.get(h.i) }));
+  }
+  if (phrases.length) hits = hits.filter(h => phrases.every(p => SEARCH_FULL[h.i].includes(p)));
+  return hits.sort((a, b) => b.score - a.score || a.i - b.i);
+}
+
+function fallbackTerms() {
+  const set = new Set();
+  document.querySelectorAll('[data-title]').forEach(el => indexWords(el.dataset.title).forEach(w => set.add(w)));
+  return [...set].sort();
+}
+
+function suggestTerms(raw) {
+  const tokens = queryTokens(raw.replace(/"[^"]*"/g, ' '));
+  const last = tokens[tokens.length - 1];
+  if (!last || last.length < 2) return [];
+  const pool = SEARCH_TERMS.length ? SEARCH_TERMS : fallbackTerms();
+  const out = pool.filter(term => term.startsWith(last) && term !== last)
+    .sort((a, b) => a.length - b.length).slice(0, 6);
+  if (out.length < 6) {
+    for (const hit of matchTerm(last)) {
+      if (hit.term !== last && !out.includes(hit.term)) out.push(hit.term);
+      if (out.length >= 6) break;
+    }
+  }
+  return out;
+}
+
+function renderSuggest(raw) {
+  const box = $('suggest');
+  const list = suggestTerms(raw);
+  SUGGEST_AT = -1;
+  if (!list.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.innerHTML = list.map(w => `<button type="button" role="option" data-s="${esc(w)}" aria-selected="false">${esc(w)}</button>`).join('');
+  box.hidden = false;
+}
+
 function applySearch(force = false) {
   const raw = $('q').value.trim();
-  const tokens = queryTokens(raw);
-  if (!tokens.length) {
+  const tokens = queryTokens(raw.replace(/"[^"]*"/g, ' '));
+  renderSuggest(raw);
+  if (!tokens.length && !/"[^"]+"/.test(raw)) {
     SEARCH_Q = '';
     SEARCH_ITEMS = [];
     SEARCH_AT = 0;
@@ -155,6 +317,7 @@ function applySearch(force = false) {
     $('search-list').innerHTML = '';
     $('search-empty').hidden = true;
     $('search-more').hidden = true;
+    $('suggest').hidden = true;
     document.querySelectorAll('[data-title]').forEach(el => { el.hidden = false; });
     return;
   }
@@ -162,10 +325,7 @@ function applySearch(force = false) {
   if (!LIVE) return;
   if (!force && SEARCH_Q === raw) return;
   SEARCH_Q = raw;
-  SEARCH_ITEMS = LIVE.items.filter(x => {
-    const hay = searchText(x);
-    return tokens.every(tok => hay.includes(tok));
-  });
+  SEARCH_ITEMS = findMatches(raw).map(hit => LIVE.items[hit.i]);
   document.body.classList.add('search-active');
   $('search-results').hidden = false;
   $('search-count').textContent = FolkI18n.t('searchResults', { n: SEARCH_ITEMS.length, q: raw });
@@ -290,6 +450,7 @@ function applyNews(news) {
   const items = ((news && news.items) || []).filter(x => !isVideoItem(x));
   if (!items.length) return;
   LIVE = { ...news, items };
+  buildIndex();
   renderNews();
 }
 

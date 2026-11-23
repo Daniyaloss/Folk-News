@@ -188,6 +188,11 @@ a{-webkit-tap-highlight-color:transparent}
 .pop{min-width:12.5rem}
 .pop a,.pop button{display:flex;align-items:center;gap:.625rem}
 .pop svg{width:1.125rem;height:1.125rem;flex:none;color:var(--gray)}
+.search{position:relative}
+.suggest{position:absolute;top:calc(100% + .375rem);left:0;right:0;z-index:30;display:grid;padding:.375rem;border:1px solid var(--line);border-radius:.875rem;background:#fff;box-shadow:0 12px 32px rgb(20 20 20/.12)}
+.suggest[hidden]{display:none}
+.suggest button{padding:.625rem .875rem;border:0;border-radius:.5rem;background:none;color:var(--ink);text-align:left;font-size:.9375rem;font-weight:600}
+.suggest button:hover,.suggest button[aria-selected="true"]{background:var(--soft);color:var(--blue)}
 body.search-active .ticker,body.search-active #category-empty,body.search-active [data-news-section]{display:none}
 #search-results{display:grid;gap:0}
 #search-results[hidden]{display:none}
