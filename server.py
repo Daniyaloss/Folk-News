@@ -58,6 +58,8 @@ CATEGORY_RULES = [
 TAG = re.compile(r"<[^>]+>")
 SPACE = re.compile(r"\s+")
 IMG_TAG = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.I)
+OG_IMG = re.compile(r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image(?::src)?)["\'][^>]+content=["\']([^"\']+)["\']', re.I)
+OG_IMG_REV = re.compile(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\'](?:og:image|twitter:image(?::src)?)["\']', re.I)
 LOCK = threading.Lock()
 CACHE.parent.mkdir(parents=True, exist_ok=True)
 IMGDIR.mkdir(parents=True, exist_ok=True)
@@ -149,20 +151,36 @@ def time_label(value, now):
     return value.strftime("%d %b %Y")
 
 
-def find_image(node, description):
+def absolute_url(base, url):
+    url = html.unescape((url or "").strip())
+    if not url or url.startswith("data:"):
+        return ""
+    if url.startswith("//"):
+        return "https:" + url
+    parsed = urlparse(url)
+    if parsed.scheme in ("http", "https"):
+        return url
+    if parsed.scheme or not base:
+        return ""
+    from urllib.parse import urljoin
+    return urljoin(base, url)
+
+
+def find_image(node, description, link=""):
     direct = child_text(node, "img")
     if direct.startswith("http"):
         return html.unescape(direct)
-    for name in ("thumbnail", "content"):
-        value = child_attr(node, name, "url")
+    for name in ("thumbnail", "content", "image"):
+        value = child_attr(node, name, "url") or child_text(node, name)
+        value = absolute_url(link, value) or (html.unescape(value) if value.startswith("http") else "")
         if value.startswith("http"):
-            return html.unescape(value)
+            return value
     enclosed = child_attr(node, "enclosure", "url")
     if enclosed.startswith("http"):
         return html.unescape(enclosed)
     found = IMG_TAG.search(description or "")
     if found:
-        return html.unescape(found.group(1))
+        return absolute_url(link, found.group(1))
     return ""
 
 
@@ -188,34 +206,60 @@ def parse_feed(source, url, now):
             "published": published.isoformat(),
             "timeLabel": time_label(published, now),
             "category": guess_category(title),
-            "image": find_image(node, description),
+            "image": find_image(node, description, link),
             "excerpt": clean(description),
         })
     return result
 
 
-def save_image(url):
+def fetch_page_image(url):
     if not url.startswith("http"):
-        return url
-    suffix = Path(urlparse(url).path).suffix.lower()
-    if suffix not in (".jpg", ".jpeg", ".png", ".webp"):
-        suffix = ".jpg"
-    name = hashlib.sha1(url.encode("utf-8")).hexdigest()[:16] + suffix
-    target = IMGDIR / name
-    if target.exists():
-        return f"Assets/news/{name}"
+        return ""
     try:
         request = Request(url, headers={"User-Agent": UA, "Referer": "https://www.google.com/"})
         with open_url(request, 10) as response:
-            if not response.headers.get("Content-Type", "").startswith("image/"):
-                return url
-            data = response.read(2_000_000)
-        if not data:
-            return url
-        target.write_bytes(data)
-        return f"Assets/news/{name}"
+            ctype = response.headers.get("Content-Type", "")
+            if "html" not in ctype and "xml" not in ctype and ctype:
+                return ""
+            text = response.read(300_000).decode("utf-8", "ignore")
+        found = OG_IMG.search(text) or OG_IMG_REV.search(text)
+        if not found:
+            return ""
+        return absolute_url(url, found.group(1))
     except Exception:
+        return ""
+
+
+def save_image(url, page_url=""):
+    if not url.startswith("http"):
         return url
+    candidates = [url]
+    if page_url:
+        og = fetch_page_image(page_url)
+        if og and og not in candidates:
+            candidates.append(og)
+    for candidate in candidates:
+        suffix = Path(urlparse(candidate).path).suffix.lower()
+        if suffix not in (".jpg", ".jpeg", ".png", ".webp"):
+            suffix = ".jpg"
+        name = hashlib.sha1(candidate.encode("utf-8")).hexdigest()[:16] + suffix
+        target = IMGDIR / name
+        if target.exists():
+            return f"Assets/news/{name}"
+        try:
+            request = Request(candidate, headers={"User-Agent": UA, "Referer": page_url or "https://www.google.com/"})
+            with open_url(request, 10) as response:
+                ctype = response.headers.get("Content-Type", "")
+                if not ctype.startswith("image/"):
+                    continue
+                data = response.read(2_000_000)
+            if not data:
+                continue
+            target.write_bytes(data)
+            return f"Assets/news/{name}"
+        except Exception:
+            continue
+    return url
 
 
 def translate_titles(items):
@@ -306,9 +350,9 @@ def refresh():
             Path(item["image"]).name for item in old_items if is_local_image(item)
         }
         for item in fresh:
-            if len(local_names) >= MAX_IMAGES:
-                break
-            item["image"] = save_image(item["image"])
+            if len(local_names) >= MAX_IMAGES and item["image"]:
+                continue
+            item["image"] = save_image(item["image"], item.get("url", ""))
             if is_local_image(item):
                 local_names.add(Path(item["image"]).name)
 
