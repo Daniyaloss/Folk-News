@@ -20,7 +20,7 @@ IMGDIR = ROOT / "Assets" / "news"
 WIB = timezone(timedelta(hours=7))
 REFRESH_HOUR = 7
 MAX_ITEMS = 6000
-MAX_IMAGES = 160
+MAX_IMAGES = 1200
 HISTORY_DAYS = 60
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) FolkNews/1.0"
 TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
@@ -357,6 +357,18 @@ def refresh():
                 local_names.add(Path(item["image"]).name)
 
         items = fresh + old_items
+        for item in items:
+            if is_local_image(item):
+                continue
+            if not item.get("image") and len(local_names) >= MAX_IMAGES:
+                continue
+            if item.get("image") or len(local_names) < MAX_IMAGES:
+                before = item.get("image", "")
+                item["image"] = save_image(item.get("image", ""), item.get("url", ""))
+                if is_local_image(item):
+                    local_names.add(Path(item["image"]).name)
+                elif not before and item.get("image"):
+                    pass
         items.sort(key=lambda x: x["published"], reverse=True)
         items = items[:MAX_ITEMS]
         translated = translate_titles(items)
