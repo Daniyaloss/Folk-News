@@ -62,10 +62,21 @@ function editDistance(a, b, max) {
   return prev[b.length];
 }
 function syncUrl(q) { try { const url = new URL(location.href); if (q) url.searchParams.set('q', q); else url.searchParams.delete('q'); history.replaceState(null, '', url.pathname + url.search + url.hash); } catch {} }
-const cssUrl = u => `url('${encodeURI(String(u || '')).replace(/'/g, '%27')}')`;
-const picture = (url, i) => url
-  ? `<span class="ph has-img" style="--t:${TINT[i % 5]};background-image:${cssUrl(url)}"></span>`
-  : ph(i);
+const safeImg = u => {
+  u = String(u || '').trim();
+  if (!u) return '';
+  if (/^https?:\/\//i.test(u)) return u.replace(/^http:\/\//i, 'https://');
+  if (/^(Assets\/|data\/|\.\/)/i.test(u) && !/^\/\//.test(u)) return u;
+  return '';
+};
+const imgTag = (url, cls = '') => {
+  const src = safeImg(url);
+  return src ? `<img${cls ? ` class="${cls}"` : ''} src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove('has-img');this.remove()">` : '';
+};
+const picture = (url, i) => {
+  const img = imgTag(url);
+  return `<span class="ph${img ? ' has-img' : ''}" style="--t:${TINT[i % 5]}">${img}</span>`;
+};
 const label = x => {
   const raw = x.published || x.pubDate;
   if (!raw) return timeText(x.timeLabel);
@@ -116,8 +127,7 @@ $('today').textContent = new Date().toLocaleDateString(FolkI18n.locale(), { week
 $('hero').dataset.title = t(demoText(HERO[1]));
 $('hero').href = HERO_LINK;
 $('hero').classList.add('photo');
-$('hero').style.backgroundImage = 'url("Assets/berita_kpk.jpeg"), linear-gradient(135deg,#545f78,#1f2433)';
-$('hero').innerHTML = `<span class="pill">${trCat(HERO[0])}</span><h2>${demoText(HERO[1])}</h2><p class="hero-excerpt">${demoText(HERO_EXCERPT)}</p><small>${timeText(HERO[2])}</small>`;
+$('hero').innerHTML = `${imgTag('Assets/berita_kpk.jpeg', 'hero-img')}<span class="pill">${trCat(HERO[0])}</span><h2>${demoText(HERO[1])}</h2><p class="hero-excerpt">${demoText(HERO_EXCERPT)}</p><small>${timeText(HERO[2])}</small>`;
 $('side').innerHTML = SIDE.map((s, i) => `<a class="mini" href="#" data-title="${esc(t(demoText(s[1])))}">${ph(i)}<div><span class="cat">${trCat(s[0])}</span><h3>${demoText(s[1])}</h3><small>${timeText(s[2])}</small></div></a>`).join('');
 $('fresh').innerHTML = FRESH.map((s, i) => `<a class="card" href="#" data-title="${esc(t(demoText(s[1])))}">${ph(i)}<span class="cat">${trCat(s[0])}</span><h3>${demoText(s[1])}</h3><small>${timeText(s[2])}</small></a>`).join('');
 $('politics').innerHTML = POLITICS.map((s, i) => `<a class="row" href="#" data-title="${esc(t(demoText(s[0])))}">${ph(i + 1)}<div><span class="cat">${trCat('Politics')}</span><h3>${demoText(s[0])}</h3><p>${demoText(s[1])}</p><small>${timeText(s[2])}</small></div></a>`).join('');
@@ -493,10 +503,8 @@ function renderNews() {
   $('hero').target = '_blank';
   $('hero').rel = 'noopener';
   $('hero').classList.add('photo');
-  $('hero').style.backgroundImage = lead.image
-    ? `${cssUrl(lead.image)}, linear-gradient(135deg,#545f78,#1f2433)`
-    : 'linear-gradient(135deg,#545f78,#1f2433)';
-  $('hero').innerHTML = `<span class="pill">${esc(lead.source || trCat(lead.category || 'News'))}</span><h2>${esc(titleText(lead))}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>${saveButton(lead)}`;
+  $('hero').style.backgroundImage = 'linear-gradient(135deg,#545f78,#1f2433)';
+  $('hero').innerHTML = `${imgTag(lead.image, 'hero-img')}<span class="pill">${esc(lead.source || trCat(lead.category || 'News'))}</span><h2>${esc(titleText(lead))}</h2><p class="hero-excerpt">${esc(lead.excerpt || '')}</p><small>${esc(label(lead))}</small>${saveButton(lead)}`;
 
   const side = next(rest, 4);
   $('side').innerHTML = side.map((x, i) =>

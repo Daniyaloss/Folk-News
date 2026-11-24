@@ -88,9 +88,9 @@ main{display:grid;grid-template-columns:minmax(0,1fr);gap:2.75rem;padding-top:1.
 .cat{color:var(--blue);font-weight:600;font-size:.8125rem}
 small{color:var(--gray);font-size:.8125rem}
 h3{font-weight:600;font-size:1.0625rem;line-height:1.42}
-.ph{display:block;position:relative;aspect-ratio:16/9;border-radius:.5rem;background:var(--t,#dde3ee)}
+.ph{display:block;position:relative;aspect-ratio:16/9;border-radius:.5rem;overflow:hidden;background:var(--t,#dde3ee)}
 .ph::after{content:"";position:absolute;inset:0;background:var(--img) center/min(2.5rem,32%) no-repeat}
-.ph.has-img{background-size:cover;background-position:center;background-repeat:no-repeat}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .ph.has-img::after{display:none}
 a{-webkit-tap-highlight-color:transparent}
 
@@ -103,11 +103,12 @@ a{-webkit-tap-highlight-color:transparent}
 
 .hero-row{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem}
 .hero{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:.875rem;min-height:clamp(18rem,60vw,32.5rem);padding:clamp(1.25rem,3vw,2rem);border-radius:.75rem;overflow:hidden;color:#fff;text-decoration:none;background:var(--img) 50% 30%/3.5rem no-repeat,linear-gradient(135deg,#545f78,#1f2433)}
-.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 25%,rgb(0 0 0/.82))}
-.hero>*{position:relative}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 25%,rgb(0 0 0/.82));z-index:1}
+.hero>*{position:relative;z-index:2}
+.hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .hero h2{font:700 clamp(1.5rem,3.4vw,2.75rem)/1.22 var(--head);text-wrap:balance}
 .hero-excerpt{max-width:64ch;margin:0;color:#e5e7ee;font-size:.875rem;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
-.hero.photo{min-height:clamp(24rem,80vw,34rem);background-size:cover;background-position:50% 40%;background-repeat:no-repeat}
+.hero.photo{min-height:clamp(24rem,80vw,34rem);background:linear-gradient(135deg,#545f78,#1f2433)}
 .hero small{color:#d9dce6;font-size:.875rem}
 .pill{padding:.375rem .75rem;border-radius:.375rem;background:#fff;color:var(--ink);font-weight:600;font-size:.8125rem}
 .side{display:grid;gap:1rem}
